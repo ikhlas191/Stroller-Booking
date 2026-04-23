@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>EZ Stroller Rental</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="EZ Stroller">
+    <meta name="description" content="Premium Baby Gear Rental for Your Little Ones">
+    <meta name="theme-color" content="#6c5ce7">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EZ Stroller">
+
+    <!-- Firebase Compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary: #6c5ce7; 
+            --secondary: #f1f3f9;
+            --wa: #25d366;
+            --email: #ea4335;
+            --text: #2c3e50;
+            --radius: 12px;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --accent: #a29bfe;
+            --success: #27ae60;
+            --edit: #3498db;
+        }
+
+        body { font-family: 'Inter', -apple-system, sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; color: var(--text); }
+        .container { max-width: 500px; margin: 0 auto; }
+
+        .brand-header { text-align: center; cursor: pointer; user-select: none; margin-bottom: 10px; padding: 15px; border-radius: 15px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .brand-header h2 { margin: 0; color: var(--primary); font-size: 1.4rem; }
+        .brand-header p { margin: 5px 0 0 0; font-size: 0.8rem; color: #777; }
+        
+        #db-status { font-size: 0.65rem; text-align: center; margin-bottom: 10px; color: #888; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .dot { height: 6px; width: 6px; border-radius: 50%; display: inline-block; }
+        .dot-online { background-color: var(--success); }
+        .dot-offline { background-color: var(--danger); }
+
+        .tabs { display: none; margin-bottom: 15px; background: #e0e0e0; border-radius: var(--radius); overflow: hidden; padding: 4px; }
+        .tabs.visible { display: flex; }
+        .tab-btn { flex: 1; padding: 10px; border: none; cursor: pointer; background: transparent; font-weight: bold; border-radius: 8px; transition: 0.3s; font-size: 0.85rem; }
+        .tab-btn.active { background: var(--primary); color: white; }
+
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border-top: 6px solid var(--primary); display: none; margin-bottom: 20px; }
+        .card.active { display: block; }
+
+        .section-title { font-size: 0.7rem; text-transform: uppercase; color: #999; margin: 15px 0 8px 0; border-bottom: 1px solid #eee; padding-bottom: 3px; font-weight: bold; letter-spacing: 1px; }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.8rem; color: #555; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #dfe6e9; border-radius: 8px; box-sizing: border-box; font-size: 0.9rem; background: white; outline: none; }
+        
+        .car-preview { text-align: center; margin-bottom: 15px; background: #fafafa; padding: 10px; border-radius: 10px; border: 1px solid #eee; }
+        .car-image { width: 100%; height: 160px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; background: #fff; }
+        
+        .stroller-desc-box { 
+            text-align: left; font-size: 12px; color: #5d6d7e; background: #fff; padding: 10px; border-radius: 8px; border-left: 3px solid var(--primary); margin-top: 10px; line-height: 1.5; min-height: 20px;
+        }
+
+        .price-summary { background: var(--secondary); padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #e0e6ed; }
+        .price-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; }
+        .extra-item-row { color: #555; font-style: italic; font-size: 0.8rem; padding-left: 10px; }
+        .discount-row { color: var(--success); font-weight: 600; }
+        .before-deposit-row { font-weight: bold; border-top: 1px solid #cbd5e0; margin-top: 5px; padding-top: 5px; color: #444; }
+        .total-price { display: flex; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 2px solid #cbd5e0; font-weight: 800; font-size: 1.1rem; color: var(--primary); }
+
+        .btn { border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; margin-bottom: 8px; color: white; transition: 0.2s; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-wa { background-color: var(--wa); }
+        .btn-email { background-color: var(--email); }
+        .btn-save { background-color: var(--primary); }
+        .btn-review { background-color: var(--accent); }
+        .btn-sm { padding: 5px 10px; width: auto; font-size: 0.7rem; margin-bottom: 0; }
+        .btn-danger { background-color: var(--danger); }
+        .btn-edit { background-color: var(--edit); }
+        
+        /* Multi Item Styles */
+        .extra-items-container { margin-top: 10px; border: 1px dashed #ccc; padding: 10px; border-radius: 10px; background: #fcfcfc; }
+        .extra-item-entry { display: flex; gap: 5px; margin-bottom: 8px; align-items: center; }
+        .extra-item-entry select { flex: 1; font-size: 0.8rem; }
+        
+        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; margin-bottom: 8px; border-radius: 8px; border: 1px solid #eee; }
+        .admin-item-info { flex: 1; font-size: 0.8rem; }
+        .admin-item-info strong { display: block; color: var(--primary); }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 15px; }
+        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .review-row { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; padding: 8px 0; font-size: 0.85rem; }
+        .review-row span:first-child { font-weight: bold; color: #7f8c8d; }
+        
+        .admin-form-box { background: #f0f4f8; padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px dashed var(--primary); }
+        .flex-row { display: flex; gap: 10px; }
+        .flex-row > div { flex: 1; }
+
+        .terms-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; padding: 12px; background: #fffbe6; border-radius: 8px; border: 1px solid #ffe58f; }
+        .terms-check-row { display: flex; align-items: flex-start; gap: 10px; }
+        .terms-check-row input { width: 18px; height: 18px; margin-top: 2px; }
+        .terms-check-row label { font-size: 0.75rem; color: #856404; cursor: pointer; line-height: 1.4; margin: 0; font-weight: normal; }
+        
+        .links-container { margin-top: 5px; padding-top: 5px; border-top: 1px dashed #ffe58f; display: flex; flex-wrap: wrap; gap: 8px; }
+
+        .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px; }
+        .pricing-grid label { font-size: 0.7rem; color: #777; margin-bottom: 2px; }
+
+        /* Loading Screen */
+        #loadingScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9998; transition: opacity 0.5s ease;
+        }
+        #loadingScreen.hide { opacity: 0; pointer-events: none; }
+        .loading-icon { font-size: 3.5rem; margin-bottom: 15px; animation: bounce 1s infinite alternate; }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+        .loading-title { color: white; font-size: 1.3rem; font-weight: bold; margin-bottom: 8px; }
+        .loading-sub { color: rgba(255,255,255,0.8); font-size: 0.85rem; margin-bottom: 25px; }
+        .loading-bar-wrap { width: 200px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 10px; overflow: hidden; }
+        .loading-bar { height: 100%; width: 0%; background: white; border-radius: 10px; transition: width 0.4s ease; }
+        .loading-msg { color: rgba(255,255,255,0.7); font-size: 0.75rem; margin-top: 15px; text-align: center; padding: 0 30px; }
+        .loading-retry-btn { margin-top: 20px; background: white; color: #6c5ce7; border: none; padding: 10px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9rem; display: none; }
+    </style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loadingScreen">
+    <div class="loading-icon">🛒</div>
+    <div class="loading-title">EZ Stroller Rental</div>
+    <div class="loading-sub">Premium Baby Gear for Your Little Ones</div>
+    <div class="loading-bar-wrap"><div class="loading-bar" id="loadingBar"></div></div>
+    <div class="loading-msg" id="loadingMsg">Menyambung ke pangkalan data...</div>
+    <button class="loading-retry-btn" id="loadingRetryBtn" onclick="retryLoad()">🔄 Cuba Semula</button>
+</div>
+
+<div class="container">
+    <div class="brand-header" id="adminTrigger">
+        <h2 id="mainTitle">EZ Stroller Rental</h2>
+        <p>Premium Baby Gear for Your Little Ones</p>
+    </div>
+
+    <div id="db-status">
+        <span class="dot dot-offline" id="status-dot"></span>
+        <span id="status-text">Connecting to Stroller Cloud Database...</span>
+    </div>
+
+    <div class="tabs" id="navTabs">
+        <button class="tab-btn active" onclick="showTab('booking', this)">Booking</button>
+        <button class="tab-btn" onclick="showTab('admin', this)">Settings (Admin)</button>
+    </div>
+
+    <div id="booking" class="card active">
+        <div class="section-title">Customer Details</div>
+        <div class="form-group">
+            <label>Country of Origin:</label>
+            <select id="custCountry"></select>
+        </div>
+        
+        <div class="section-title">Toddler / Infant Information</div>
+        <div class="flex-row">
+            <div class="form-group">
+                <label>Age:</label>
+                <select id="custAge">
+                    <option value="Under 1 year">Under 1 year</option>
+                    <option value="1 Year">1 Year</option>
+                    <option value="2 Years">2 Years</option>
+                    <option value="3 Years">3 Years</option>
+                    <option value="4 Years">4 Years</option>
+                    <option value="5 Years">5 Years</option>
+                    <option value="6 Years">6 Years</option>
+                    <option value="7 Years">7 Years</option>
+                    <option value="8 Years">8 Years</option>
+                    <option value="9 Years">9 Years</option>
+                    <option value="10 Years">10 Years</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Weight (kg):</label>
+                <select id="custWeight">
+                    <option value="0-5kg">0-5kg</option>
+                    <option value="5-10kg">5-10kg</option>
+                    <option value="10-15kg">10-15kg</option>
+                    <option value="15-20kg">15-20kg</option>
+                    <option value="20-25kg">20-25kg</option>
+                    <option value="25-30kg">25-30kg</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="section-title">Stroller Selection</div>
+        <div class="car-preview">
+            <img id="displayImg" class="car-image" src="https://via.placeholder.com/300x160?text=Select+Stroller+Model">
+            <select id="carSelect" onchange="updateUI()"><option value="">Loading equipment...</option></select>
+            <div id="strollerDescription" class="stroller-desc-box">Selecting a model to view details...</div>
+        </div>
+
+        <div class="section-title">Schedule</div>
+        <div class="flex-row">
+            <div class="form-group"><label>Pickup Date:</label><input type="date" id="pickupDate" onchange="calculate()"></div>
+            <div class="form-group"><label>Time:</label><input type="time" id="pickupTime" value="10:00"></div>
+        </div>
+        <div class="form-group">
+            <label>Pickup Option:</label>
+            <select id="pickupLoc" onchange="calculate()"></select>
+        </div>
+
+        <div class="flex-row">
+            <div class="form-group"><label>Return Date:</label><input type="date" id="returnDate" onchange="calculate()"></div>
+            <div class="form-group"><label>Time:</label><input type="time" id="returnTime" value="10:00"></div>
+        </div>
+        <div class="form-group">
+            <label>Return Option:</label>
+            <select id="returnLoc" onchange="calculate()"></select>
+        </div>
+
+        <!-- Multi Item Section -->
+        <div class="section-title">Add Another Item (Max 4)</div>
+        <div class="extra-items-container" id="extraItemsContainer">
+            <div id="extraItemsList"></div>
+            <button class="btn btn-review btn-sm" onclick="addExtraItemRow()" id="btnAddItem">+ Add Another Stroller</button>
+        </div>
+
+        <div class="price-summary">
+            <div class="price-row"><span id="mainItemLabel">Applied Daily Rate:</span><span id="rateLabel">RM 0</span></div>
+            <div class="price-row"><span>Duration:</span><span id="daysLabel" style="font-weight: bold;">Select Dates</span></div>
+            <div id="extraItemsPriceList"></div>
+            <div class="price-row"><span>Delivery Fees:</span><span id="locationFeeLabel">RM 0.00</span></div>
+            <div class="price-row discount-row"><span>Special Adjustments:</span><span id="discountLabel">RM 0.00</span></div>
+            <div class="price-row before-deposit-row"><span>Subtotal:</span><span id="subtotalLabel">RM 0.00</span></div>
+            <!-- Deposit row now shows dynamic amount -->
+            <div class="price-row"><span>Security Deposit (Refundable):</span><span id="depositLabel">RM 100.00</span></div>
+            <div class="total-price"><span>GRAND TOTAL:</span><span id="totalLabel">RM 0.00</span></div>
+        </div>
+
+        <div class="terms-box">
+            <div class="terms-check-row">
+                <input type="checkbox" id="termsCheck" onchange="toggleButtons()">
+                <label for="termsCheck" id="termsDisplay">Loading terms...</label>
+            </div>
+            <div id="bookingLinks" class="links-container"></div>
+        </div>
+
+        <button class="btn btn-review" onclick="openReview()">🔎 Review Booking Details</button>
+        <button class="btn btn-wa" id="btnWa" onclick="handleSubmit('wa')" disabled>💬 Book via WhatsApp</button>
+        <button class="btn btn-email" id="btnEmail" onclick="handleSubmit('email')" disabled>📧 Book via Email</button>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin" class="card">
+        <h2 style="margin:0 0 15px 0; color:var(--primary)">Admin Panel</h2>
+        
+        <div class="section-title">Manage Strollers</div>
+        <div class="admin-form-box">
+            <input type="hidden" id="editCarIdx" value="">
+            <div class="form-group"><label>Model Name:</label><input type="text" id="newCarName" placeholder="e.g. Bugaboo Bee 6"></div>
+            <div class="form-group"><label>Description:</label><textarea id="newCarDesc" placeholder="Brief details about the stroller..." style="height: 60px;"></textarea></div>
+            <div class="form-group"><label>Photo URL:</label><input type="text" id="newCarImg" placeholder="https://image-link.com/photo.jpg"></div>
+
+            <label style="margin-bottom: 5px; color: var(--primary);">Pricing (RM):</label>
+            <div class="pricing-grid">
+                <div><label>1 day:</label><input type="number" id="p_1" placeholder="RM"></div>
+                <div><label>1 - 2 days:</label><input type="number" id="p_1_2" placeholder="RM"></div>
+                <div><label>3 - 6 days:</label><input type="number" id="p_3_6" placeholder="RM"></div>
+                <div><label>7 - 13 days:</label><input type="number" id="p_7_13" placeholder="RM"></div>
+                <div><label>14 - 20 days:</label><input type="number" id="p_14_20" placeholder="RM"></div>
+                <div><label>21 - 29 days:</label><input type="number" id="p_21_29" placeholder="RM"></div>
+                <div style="grid-column: span 2;"><label>30 - 60 days:</label><input type="number" id="p_30_60" placeholder="RM"></div>
+            </div>
+
+            <button class="btn btn-save" id="btnSaveCar" onclick="saveCar()">Save Stroller</button>
+            <button class="btn" id="btnCancelEdit" onclick="cancelEdit()" style="background:#95a5a6; display:none; margin-top:5px">Cancel Edit</button>
+        </div>
+        <div id="adminCarList"></div>
+
+        <div class="section-title">Manage Pickup / Return Locations</div>
+        <div class="admin-form-box">
+            <input type="hidden" id="editLocIdx" value="">
+            <div class="form-group"><label>Location Name:</label><input type="text" id="newLocName" placeholder="e.g. KLIA Terminal 1"></div>
+            <div class="form-group"><label>Delivery Fee (RM):</label><input type="number" id="newLocPrice" placeholder="0 = Free"></div>
+            <button class="btn btn-save" id="btnSaveLoc" onclick="saveLoc()">Save Location</button>
+            <button class="btn" id="btnCancelLocEdit" onclick="cancelLocEdit()" style="background:#95a5a6; display:none; margin-top:5px">Cancel Edit</button>
+        </div>
+        <div id="adminLocList"></div>
+
+        <div class="section-title">General Settings</div>
+        <div class="form-group"><label>WhatsApp Number:</label><input type="text" id="confPhone"></div>
+        <div class="form-group"><label>Admin Email:</label><input type="email" id="confEmail"></div>
+        <div class="form-group"><label>Terms & Conditions Text:</label><input type="text" id="confTermsText"></div>
+        <div class="form-group"><label>Terms & Conditions Link URL:</label><input type="text" id="confTermsLink" placeholder="https://..."></div>
+        <button class="btn btn-save" onclick="saveSettings()">Update Settings</button>
+    </div>
+</div>
+
+<div id="reviewModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="text-align:center; color:var(--primary); margin-top:0">Booking Summary</h3>
+        <div id="reviewContent"></div>
+        <button class="btn btn-save" style="background:#636e72; margin-top:15px" onclick="closeReview()">Close & Edit</button>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAcqwzRnvHN4hjM9PX-PTe5o616LVMC3JM",
+        authDomain: "stroller-system.firebaseapp.com",
+        databaseURL: "https://stroller-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "stroller-system",
+        storageBucket: "stroller-system.firebasestorage.app",
+        messagingSenderId: "202491162301",
+        appId: "1:202491162301:web:63f879b38694314978d1d4",
+        measurementId: "G-R7E0BK1055"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const ADMIN_PASS = "123iin456";
+    const DEPOSIT_PER_ITEM = 100;   // RM100 per item
+    const MAX_DEPOSIT = 500;         // Maximum deposit RM500
+    const MIN_DAYS = 1;
+
+    const allCountries = ["Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Côte d'Ivoire", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Holy See", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine State", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"];
+
+    let inventory = {};
+    let locations = {};
+    let settings = {};
+    let currentTotals = { days: 0, finalDailyRate: 0, rentalCost: 0, extraRentalCost: 0, locFee: 0, subtotal: 0, deposit: 100, grand: 0, extraItems: [] };
+
+    // Calculate deposit based on number of items (RM100 per item, max RM400)
+    function calculateDeposit() {
+        const extraCount = document.querySelectorAll('.extra-item-select').length;
+        const totalItems = 1 + extraCount; // main item + extra items
+        const deposit = Math.min(totalItems * DEPOSIT_PER_ITEM, MAX_DEPOSIT);
+        return deposit;
+    }
+
+    // Loading screen helpers
+    let loadProgress = 0;
+    let loadedFlags = { settings: false, inventory: false, locations: false };
+    let loadTimeout = null;
+    let retryCount = 0;
+
+    function setLoadProgress(pct, msg) {
+        document.getElementById('loadingBar').style.width = pct + '%';
+        document.getElementById('loadingMsg').innerText = msg;
+    }
+
+    function checkAllLoaded() {
+        const { settings, inventory, locations } = loadedFlags;
+        if (settings && inventory && locations) {
+            clearTimeout(loadTimeout);
+            setLoadProgress(100, 'Sedia! Selamat datang 👋');
+            setTimeout(() => {
+                const screen = document.getElementById('loadingScreen');
+                screen.classList.add('hide');
+                setTimeout(() => screen.style.display = 'none', 500);
+            }, 600);
+        }
+    }
+
+    function showLoadTimeout() {
+        retryCount++;
+        if (retryCount <= 2) {
+            setLoadProgress(loadProgress, `Sambungan lambat... Cuba semula (${retryCount}/2)`);
+            retryLoad();
+        } else {
+            setLoadProgress(loadProgress, 'Gagal sambung. Semak internet anda.');
+            document.getElementById('loadingRetryBtn').style.display = 'block';
+        }
+    }
+
+    function retryLoad() {
+        loadedFlags = { settings: false, inventory: false, locations: false };
+        loadProgress = 0;
+        setLoadProgress(5, 'Mencuba semula...');
+        document.getElementById('loadingRetryBtn').style.display = 'none';
+        clearTimeout(loadTimeout);
+        loadTimeout = setTimeout(showLoadTimeout, 10000);
+        attachFirebaseListeners();
+    }
+
+    function attachFirebaseListeners() {
+        setLoadProgress(20, 'Memuatkan tetapan...');
+        db.ref('ez_stroller_settings').once('value', snap => {
+            settings = snap.val() || { termsText: "I agree to the Stroller Rental Terms & Conditions.", termsLink: "", adminEmail: "customer.care@ezstrollerrental.com.my", adminPhone: "60182246616" };
+            document.getElementById('confPhone').value = settings.adminPhone || "";
+            document.getElementById('confEmail').value = settings.adminEmail || "";
+            document.getElementById('confTermsText').value = settings.termsText || "I agree to the Stroller Rental Terms & Conditions.";
+            document.getElementById('confTermsLink').value = settings.termsLink || "";
+            document.getElementById('termsDisplay').innerText = settings.termsText || "I agree to the Stroller Rental Terms & Conditions.";
+            if (settings.termsLink) {
+                document.getElementById('bookingLinks').innerHTML = `<a href="${settings.termsLink}" target="_blank" style="font-size: 0.75rem; color: var(--primary); text-decoration: underline;">Read Terms & Conditions</a>`;
+            } else {
+                document.getElementById('bookingLinks').innerHTML = "";
+            }
+            loadedFlags.settings = true;
+            loadProgress = 40;
+            setLoadProgress(40, 'Tetapan dimuatkan ✓');
+            checkAllLoaded();
+        });
+
+        // Keep live listeners after initial load
+        db.ref('ez_stroller_settings').on('value', snap => {
+            settings = snap.val() || settings;
+            document.getElementById('confPhone').value = settings.adminPhone || "";
+            document.getElementById('confEmail').value = settings.adminEmail || "";
+            document.getElementById('confTermsText').value = settings.termsText || "";
+            document.getElementById('confTermsLink').value = settings.termsLink || "";
+            document.getElementById('termsDisplay').innerText = settings.termsText || "I agree to the Stroller Rental Terms & Conditions.";
+            if (settings.termsLink) {
+                document.getElementById('bookingLinks').innerHTML = `<a href="${settings.termsLink}" target="_blank" style="font-size: 0.75rem; color: var(--primary); text-decoration: underline;">Read Terms & Conditions</a>`;
+            } else {
+                document.getElementById('bookingLinks').innerHTML = "";
+            }
+        });
+
+        setLoadProgress(loadProgress, 'Memuatkan senarai stroller...');
+        db.ref('ez_stroller_inventory').once('value', snap => {
+            inventory = snap.val() || {};
+            renderCarOptions();
+            renderAdminCars();
+            updateUI();
+            loadedFlags.inventory = true;
+            loadProgress = 70;
+            setLoadProgress(70, 'Stroller dimuatkan ✓');
+            checkAllLoaded();
+        });
+
+        db.ref('ez_stroller_inventory').on('value', snap => {
+            inventory = snap.val() || {};
+            renderCarOptions();
+            renderAdminCars();
+            updateUI();
+        });
+
+        setLoadProgress(loadProgress, 'Memuatkan lokasi...');
+        db.ref('ez_stroller_locations').once('value', snap => {
+            locations = snap.val() || {};
+            renderLocOptions();
+            renderAdminLocs();
+            calculate();
+            loadedFlags.locations = true;
+            loadProgress = 90;
+            setLoadProgress(90, 'Lokasi dimuatkan ✓');
+            checkAllLoaded();
+        });
+
+        db.ref('ez_stroller_locations').on('value', snap => {
+            locations = snap.val() || {};
+            renderLocOptions();
+            renderAdminLocs();
+            calculate();
+        });
+
+        db.ref(".info/connected").on("value", snap => {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            if (snap.val() === true) {
+                dot.className = "dot dot-online";
+                text.innerText = "Stroller Cloud Synced";
+            } else {
+                dot.className = "dot dot-offline";
+                text.innerText = "Offline - Connecting...";
+            }
+        });
+    }
+
+    function initApp() {
+        const countrySelect = document.getElementById('custCountry');
+        countrySelect.innerHTML = allCountries.map(c => `<option value="${c}" ${c === 'Malaysia' ? 'selected' : ''}>${c}</option>`).join('');
+        setLoadProgress(5, 'Menyambung ke pangkalan data...');
+        loadTimeout = setTimeout(showLoadTimeout, 10000);
+        attachFirebaseListeners();
+    }
+
+    function renderCarOptions() {
+        const selects = [document.getElementById('carSelect'), ...document.querySelectorAll('.extra-item-select')];
+        const html = Object.keys(inventory).map(id => `<option value="${id}">${inventory[id].name}</option>`).join('') || '<option value="">No equipment available</option>';
+        selects.forEach(s => { if(s) s.innerHTML = html; });
+    }
+
+    function renderLocOptions() {
+        const html = Object.keys(locations).map(id => `<option value="${id}">${locations[id].name} ${locations[id].price > 0 ? '(RM '+locations[id].price+')' : ''}</option>`).join('');
+        document.getElementById('pickupLoc').innerHTML = html;
+        document.getElementById('returnLoc').innerHTML = html;
+    }
+
+    function addExtraItemRow() {
+        const list = document.getElementById('extraItemsList');
+        if (list.children.length >= 4) return;
+
+        const div = document.createElement('div');
+        div.className = 'extra-item-entry';
+        div.innerHTML = `
+            <select class="extra-item-select" onchange="calculate()">
+                ${Object.keys(inventory).map(id => `<option value="${id}">${inventory[id].name}</option>`).join('')}
+            </select>
+            <button class="btn btn-danger btn-sm" onclick="removeExtraItem(this)">X</button>
+        `;
+        list.appendChild(div);
+        calculate();
+        
+        if (list.children.length >= 4) document.getElementById('btnAddItem').style.display = 'none';
+    }
+
+    // Separate function so deposit recalculates when item is removed
+    function removeExtraItem(btn) {
+        btn.parentElement.remove();
+        document.getElementById('btnAddItem').style.display = 'flex';
+        calculate();
+    }
+
+    function getRate(car, days) {
+        const p = car.prices || {};
+        if (days === 1) return p.p_1 || 0;
+        if (days === 2) return p.p_1_2 || 0;
+        if (days >= 3 && days <= 6) return p.p_3_6 || 0;
+        if (days >= 7 && days <= 13) return p.p_7_13 || 0;
+        if (days >= 14 && days <= 20) return p.p_14_20 || 0;
+        if (days >= 21 && days <= 29) return p.p_21_29 || 0;
+        if (days >= 30) return p.p_30_60 || 0;
+        return 0;
+    }
+
+    function calculate() {
+        const carId = document.getElementById('carSelect').value;
+        if (!inventory[carId]) return;
+
+        const mainCar = inventory[carId];
+        const d1 = document.getElementById('pickupDate').value;
+        const d2 = document.getElementById('returnDate').value;
+        const pLocId = document.getElementById('pickupLoc').value;
+        const rLocId = document.getElementById('returnLoc').value;
+        const locFees = (locations[pLocId]?.price || 0) + (locations[rLocId]?.price || 0);
+
+        // Calculate dynamic deposit
+        const deposit = calculateDeposit();
+        document.getElementById('depositLabel').innerText = `RM ${deposit.toFixed(2)}`;
+
+        if (d1 && d2) {
+            const start = new Date(d1);
+            const end = new Date(d2);
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 1;
+            
+            if (days < MIN_DAYS) {
+                document.getElementById('daysLabel').innerText = `Min. ${MIN_DAYS} Day Required`;
+                return;
+            }
+
+            const mainRate = getRate(mainCar, days);
+            const mainRentalCost = days * mainRate;
+
+            let extraRentalTotal = 0;
+            let extraItemsData = [];
+            let extraHtml = "";
+
+            document.querySelectorAll('.extra-item-select').forEach(sel => {
+                const item = inventory[sel.value];
+                if (item) {
+                    const rate = getRate(item, days);
+                    const cost = days * rate;
+                    extraRentalTotal += cost;
+                    extraItemsData.push({ name: item.name, rate, cost });
+                    extraHtml += `<div class="price-row extra-item-row"><span>+ ${item.name} (${days}d):</span><span>RM ${cost.toFixed(2)}</span></div>`;
+                }
+            });
+
+            const subtotal = mainRentalCost + extraRentalTotal + locFees;
+            const grand = subtotal + deposit;
+
+            currentTotals = { days, finalDailyRate: mainRate, rentalCost: mainRentalCost, extraRentalCost: extraRentalTotal, locFee: locFees, subtotal, deposit, grand, extraItems: extraItemsData };
+
+            document.getElementById('mainItemLabel').innerText = `${mainCar.name} (Daily Rate):`;
+            document.getElementById('rateLabel').innerText = `RM ${mainRate}/day`;
+            document.getElementById('daysLabel').innerText = `${days} Day(s)`;
+            document.getElementById('extraItemsPriceList').innerHTML = extraHtml;
+            document.getElementById('locationFeeLabel').innerText = `RM ${locFees.toFixed(2)}`;
+            document.getElementById('subtotalLabel').innerText = `RM ${subtotal.toFixed(2)}`;
+            document.getElementById('totalLabel').innerText = `RM ${grand.toFixed(2)}`;
+        }
+        toggleButtons();
+    }
+
+    function updateUI() {
+        const carId = document.getElementById('carSelect').value;
+        if (inventory[carId]) {
+            document.getElementById('displayImg').src = inventory[carId].img || "https://via.placeholder.com/300x160";
+            document.getElementById('strollerDescription').innerText = inventory[carId].desc || "No description.";
+        }
+        calculate();
+    }
+
+    function toggleButtons() {
+        const checked = document.getElementById('termsCheck').checked;
+        const valid = currentTotals.grand > 0;
+        document.getElementById('btnWa').disabled = !(checked && valid);
+        document.getElementById('btnEmail').disabled = !(checked && valid);
+    }
+
+    function openReview() {
+        const carId = document.getElementById('carSelect').value;
+        const car = inventory[carId];
+        let extraReview = currentTotals.extraItems.map(item => `<div class="review-row"><span>Extra: ${item.name}</span><span>RM ${item.cost.toFixed(2)}</span></div>`).join('');
+        
+        const html = `
+            <div class="review-row"><span>Country:</span><span>${document.getElementById('custCountry').value}</span></div>
+            <div class="review-row"><span>Toddler:</span><span>${document.getElementById('custAge').value} (${document.getElementById('custWeight').value})</span></div>
+            <div class="review-row"><span>Main Stroller:</span><span>${car.name}</span></div>
+            <div class="review-row"><span>Duration:</span><span>${currentTotals.days} Days @ RM ${currentTotals.finalDailyRate}/day</span></div>
+            ${extraReview}
+            <div class="review-row"><span>Pickup:</span><span>${document.getElementById('pickupDate').value} ${document.getElementById('pickupTime').value}</span></div>
+            <div class="review-row"><span>Return:</span><span>${document.getElementById('returnDate').value} ${document.getElementById('returnTime').value}</span></div>
+            <div class="review-row"><span>Subtotal:</span><span>RM ${currentTotals.subtotal.toFixed(2)}</span></div>
+            <div class="review-row"><span>Security Deposit (Refundable):</span><span>RM ${currentTotals.deposit.toFixed(2)}</span></div>
+            <div class="review-row" style="font-weight:bold; color:var(--primary)"><span>GRAND TOTAL:</span><span>RM ${currentTotals.grand.toFixed(2)}</span></div>
+        `;
+        document.getElementById('reviewContent').innerHTML = html;
+        document.getElementById('reviewModal').style.display = 'flex';
+    }
+
+    function closeReview() { document.getElementById('reviewModal').style.display = 'none'; }
+
+    function handleSubmit(method) {
+        const carId = document.getElementById('carSelect').value;
+        const car = inventory[carId];
+        const pLoc = locations[document.getElementById('pickupLoc').value]?.name || "-";
+        const rLoc = locations[document.getElementById('returnLoc').value]?.name || "-";
+
+        let msg = `*EZ STROLLER BOOKING*\n`;
+        msg += `----------------------------\n`;
+        msg += `🌍 Country: ${document.getElementById('custCountry').value}\n`;
+        msg += `👶 Age/Weight: ${document.getElementById('custAge').value} / ${document.getElementById('custWeight').value}\n\n`;
+        
+        msg += `🛒 *ITEM(S) SELECTED:*\n`;
+        msg += `• 1x ${car.name} (Main)\n`;
+        currentTotals.extraItems.forEach(item => {
+            msg += `• 1x ${item.name}\n`;
+        });
+        
+        msg += `\n📅 *RENTAL PERIOD:*\n`;
+        msg += `⏱️ Duration: ${currentTotals.days} Day(s)\n`;
+        msg += `🛫 Pickup: ${document.getElementById('pickupDate').value} (${document.getElementById('pickupTime').value})\n`;
+        msg += `📍 Loc: ${pLoc}\n`;
+        msg += `🛬 Return: ${document.getElementById('returnDate').value} (${document.getElementById('returnTime').value})\n`;
+        msg += `📍 Loc: ${rLoc}\n\n`;
+        
+        msg += `💰 *PRICE SUMMARY:*\n`;
+        msg += `- Daily Rate: RM ${currentTotals.finalDailyRate}/day\n`;
+        msg += `- Delivery Fees: RM ${currentTotals.locFee.toFixed(2)}\n`;
+        msg += `- Subtotal: RM ${currentTotals.subtotal.toFixed(2)}\n`;
+        msg += `- Security Deposit (${1 + currentTotals.extraItems.length} item(s) x RM${DEPOSIT_PER_ITEM}): RM ${currentTotals.deposit.toFixed(2)}\n`;
+        msg += `----------------------------\n`;
+        msg += `✨ *GRAND TOTAL: RM ${currentTotals.grand.toFixed(2)}*\n`;
+        msg += `----------------------------`;
+
+        if (method === 'wa') window.open(`https://wa.me/${settings.adminPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+        else window.location.href = `mailto:${settings.adminEmail}?subject=Stroller Booking Request&body=${encodeURIComponent(msg)}`;
+    }
+
+    // Admin Logic
+    function renderAdminCars() {
+        document.getElementById('adminCarList').innerHTML = Object.keys(inventory).map(id => `
+            <div class="admin-item" style="flex-direction: column; align-items: stretch;">
+                <div class="admin-item-info"><strong>${inventory[id].name}</strong></div>
+                <div style="display: flex; gap: 5px; margin-top:5px;">
+                    <button class="btn btn-edit btn-sm" onclick="editItem('${id}')" style="flex:1">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteItem('ez_stroller_inventory/${id}')">X</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderAdminLocs() {
+        const list = document.getElementById('adminLocList');
+        if (!list) return;
+        const keys = Object.keys(locations);
+        if (keys.length === 0) {
+            list.innerHTML = '<p style="font-size:0.8rem; color:#999; text-align:center;">No locations added yet.</p>';
+            return;
+        }
+        list.innerHTML = keys.map(id => `
+            <div class="admin-item" style="flex-direction: column; align-items: stretch;">
+                <div class="admin-item-info">
+                    <strong>${locations[id].name}</strong>
+                    <span style="color:#555;">${locations[id].price > 0 ? 'RM ' + parseFloat(locations[id].price).toFixed(2) : 'Free'}</span>
+                </div>
+                <div style="display: flex; gap: 5px; margin-top:5px;">
+                    <button class="btn btn-edit btn-sm" onclick="editLoc('${id}')" style="flex:1">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteItem('ez_stroller_locations/${id}')">X</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function saveLoc() {
+        const editId = document.getElementById('editLocIdx').value || Date.now();
+        const name = document.getElementById('newLocName').value.trim();
+        const price = parseFloat(document.getElementById('newLocPrice').value) || 0;
+        if (!name) { alert("Sila masukkan nama lokasi."); return; }
+        db.ref('ez_stroller_locations/' + editId).set({ name, price }).then(cancelLocEdit);
+    }
+
+    function editLoc(id) {
+        const loc = locations[id];
+        document.getElementById('editLocIdx').value = id;
+        document.getElementById('newLocName').value = loc.name;
+        document.getElementById('newLocPrice').value = loc.price || 0;
+        document.getElementById('btnSaveLoc').innerText = "Update Location";
+        document.getElementById('btnCancelLocEdit').style.display = "block";
+    }
+
+    function cancelLocEdit() {
+        document.getElementById('editLocIdx').value = "";
+        document.getElementById('newLocName').value = "";
+        document.getElementById('newLocPrice').value = "";
+        document.getElementById('btnSaveLoc').innerText = "Save Location";
+        document.getElementById('btnCancelLocEdit').style.display = "none";
+    }
+
+    function saveCar() {
+        const editId = document.getElementById('editCarIdx').value || Date.now();
+        const data = {
+            name: document.getElementById('newCarName').value,
+            desc: document.getElementById('newCarDesc').value,
+            img: document.getElementById('newCarImg').value,
+            prices: {
+                p_1: parseFloat(document.getElementById('p_1').value) || 0,
+                p_1_2: parseFloat(document.getElementById('p_1_2').value) || 0,
+                p_3_6: parseFloat(document.getElementById('p_3_6').value) || 0,
+                p_7_13: parseFloat(document.getElementById('p_7_13').value) || 0,
+                p_14_20: parseFloat(document.getElementById('p_14_20').value) || 0,
+                p_21_29: parseFloat(document.getElementById('p_21_29').value) || 0,
+                p_30_60: parseFloat(document.getElementById('p_30_60').value) || 0
+            }
+        };
+        if (data.name) db.ref('ez_stroller_inventory/' + editId).set(data).then(cancelEdit);
+    }
+
+    function editItem(id) {
+        const item = inventory[id];
+        document.getElementById('editCarIdx').value = id;
+        document.getElementById('newCarName').value = item.name;
+        document.getElementById('newCarDesc').value = item.desc || "";
+        document.getElementById('newCarImg').value = item.img || "";
+        const p = item.prices || {};
+        ['p_1', 'p_1_2', 'p_3_6', 'p_7_13', 'p_14_20', 'p_21_29', 'p_30_60'].forEach(k => document.getElementById(k).value = p[k] || "");
+        document.getElementById('btnSaveCar').innerText = "Update Stroller";
+        document.getElementById('btnCancelEdit').style.display = "block";
+    }
+
+    function cancelEdit() {
+        document.getElementById('editCarIdx').value = "";
+        ['newCarName', 'newCarDesc', 'newCarImg', 'p_1', 'p_1_2', 'p_3_6', 'p_7_13', 'p_14_20', 'p_21_29', 'p_30_60'].forEach(k => document.getElementById(k).value = "");
+        document.getElementById('btnSaveCar').innerText = "Save Stroller";
+        document.getElementById('btnCancelEdit').style.display = "none";
+    }
+
+    function saveSettings() {
+        db.ref('ez_stroller_settings').update({ 
+            adminEmail: document.getElementById('confEmail').value, 
+            adminPhone: document.getElementById('confPhone').value,
+            termsText: document.getElementById('confTermsText').value,
+            termsLink: document.getElementById('confTermsLink').value
+        });
+        alert("Settings Updated!");
+    }
+
+    function deleteItem(path) { if(confirm("Delete item?")) db.ref(path).remove(); }
+
+    function showTab(tabId, btn) {
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    let clicks = 0;
+    document.getElementById('adminTrigger').onclick = () => {
+        clicks++;
+        if (clicks === 5) {
+            if (prompt("Pass:") === ADMIN_PASS) document.getElementById('navTabs').classList.add('visible');
+            clicks = 0;
+        }
+        setTimeout(() => clicks = 0, 2000);
+    };
+
+    window.onload = initApp;
+
+    // =====================
+    // PWA - Install Prompt
+    // =====================
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const banner = document.getElementById('installBanner');
+        if (banner) banner.style.display = 'flex';
+    });
+
+    function pwaInstall() {
+        const banner = document.getElementById('installBanner');
+        if (banner) banner.style.display = 'none';
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+        }
+    }
+
+    function pwaDismiss() {
+        const banner = document.getElementById('installBanner');
+        if (banner) banner.style.display = 'none';
+    }
+
+    window.addEventListener('appinstalled', () => {
+        const banner = document.getElementById('installBanner');
+        if (banner) banner.style.display = 'none';
+        deferredPrompt = null;
+    });
+
+    // =====================
+    // PWA - Service Worker
+    // =====================
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            const CACHE = 'ez-stroller-v1';
+            self.addEventListener('install', e => { self.skipWaiting(); });
+            self.addEventListener('activate', e => { self.clients.claim(); });
+            self.addEventListener('fetch', e => {
+                if (e.request.method !== 'GET') return;
+                e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+            });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    }
+</script>
+
+<!-- PWA Install Banner -->
+<div id="installBanner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#6c5ce7; color:white; padding:14px 16px; z-index:9999; align-items:center; justify-content:space-between; gap:10px; box-shadow:0 -4px 15px rgba(0,0,0,0.2);">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:1.5rem;">🛒</span>
+        <div>
+            <div style="font-weight:bold; font-size:0.9rem;">Pasang EZ Stroller</div>
+            <div style="font-size:0.75rem; opacity:0.85;">Tambah ke skrin utama anda</div>
+        </div>
+    </div>
+    <div style="display:flex; gap:8px;">
+        <button onclick="pwaDismiss()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.8rem;">Nanti</button>
+        <button onclick="pwaInstall()" style="background:white; border:none; color:#6c5ce7; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:0.8rem;">&#128247; Pasang</button>
+    </div>
+</div>
+
+</body>
+</html>
