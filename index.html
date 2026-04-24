@@ -235,9 +235,11 @@
             margin-bottom: 12px; background: var(--sky);
         }
         .car-image {
-            width: 100%; height: 170px;
-            object-fit: cover; display: block;
+            width: 100%; height: 220px;
+            object-fit: contain; display: block;
+            background: #f0f7f2;
             transition: transform 0.4s ease;
+            padding: 8px;
         }
         .stroller-card:hover .car-image { transform: scale(1.03); }
         .stroller-select-pad { padding: 10px 10px 4px; }
@@ -555,7 +557,7 @@
 
             <div class="section-title">Stroller Selection</div>
             <div class="stroller-card">
-                <img id="displayImg" class="car-image" src="https://images.unsplash.com/photo-1591348278564-e3f63c802e49?w=600&q=80" alt="Stroller">
+                <img id="displayImg" class="car-image" src="https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&q=80" alt="Stroller">
                 <div class="stroller-select-pad">
                     <select id="carSelect" onchange="updateUI()"><option value="">Loading equipment...</option></select>
                 </div>
@@ -978,7 +980,7 @@
     function updateUI() {
         const carId = document.getElementById('carSelect').value;
         if (inventory[carId]) {
-            document.getElementById('displayImg').src = inventory[carId].img || "https://images.unsplash.com/photo-1591348278564-e3f63c802e49?w=600&q=80";
+            document.getElementById('displayImg').src = inventory[carId].img || "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&q=80";
             document.getElementById('strollerDescription').innerText = inventory[carId].desc || "No description available.";
         }
         calculate();
