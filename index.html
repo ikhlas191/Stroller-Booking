@@ -589,6 +589,15 @@
                 <button class="btn btn-review btn-sm" onclick="addExtraItemRow()" id="btnAddItem" style="margin-top:4px">+ Add Another Stroller</button>
             </div>
 
+            <div class="section-title">Payment Method</div>
+            <div class="form-group">
+                <select id="paymentMethod" onchange="calculate()" style="font-size:0.88rem;">
+                    <option value="qr">💳 QR Payment</option>
+                    <option value="paypal">🌐 PayPal (+6% tax)</option>
+                    <option value="cod">🚗 Cash On Delivery (+RM30)</option>
+                </select>
+            </div>
+
             <div class="section-title">Price Summary</div>
             <div class="price-summary">
                 <div class="price-summary-head">🧾 Booking Estimate</div>
@@ -597,6 +606,8 @@
                 <div id="extraItemsPriceList"></div>
                 <div class="price-row"><span>Delivery Fees</span><span id="locationFeeLabel">RM 0.00</span></div>
                 <div class="price-row discount-row"><span>Special Adjustments</span><span id="discountLabel">RM 0.00</span></div>
+                <div class="price-row" id="taxRow" style="display:none"><span>PayPal Tax (6%)</span><span id="taxLabel">RM 0.00</span></div>
+                <div class="price-row" id="codRow" style="display:none"><span>Cash On Delivery Fee</span><span id="codLabel">RM 30.00</span></div>
                 <div class="price-row before-deposit-row"><span>Subtotal</span><span id="subtotalLabel">RM 0.00</span></div>
                 <div class="price-row"><span>Security Deposit <span style="font-size:0.7rem;color:var(--text-soft)">(Refundable)</span></span><span id="depositLabel">RM 100.00</span></div>
                 <div class="total-price-box">
@@ -750,8 +761,11 @@
     let currentTotals = { days: 0, finalDailyRate: 0, rentalCost: 0, extraRentalCost: 0, locFee: 0, subtotal: 0, deposit: 100, grand: 0, extraItems: [] };
 
     function calculateDeposit() {
-        const extraCount = document.querySelectorAll('.extra-item-select').length;
-        return Math.min((1 + extraCount) * DEPOSIT_PER_ITEM, MAX_DEPOSIT);
+        const extraCount = document.querySelectorAll(".extra-item-select").length;
+        const isCOD = document.getElementById("paymentMethod")?.value === "cod";
+        const depositPerItem = isCOD ? 300 : DEPOSIT_PER_ITEM;
+        const maxDeposit = isCOD ? 1500 : MAX_DEPOSIT;
+        return Math.min((1 + extraCount) * depositPerItem, maxDeposit);
     }
 
     // ── LOADING ──
@@ -968,15 +982,22 @@
                 }
             });
 
-            const subtotal = mainRentalCost + extraRentalTotal + locFees;
+            const payMethod = document.getElementById('paymentMethod')?.value || 'qr';
+            const baseSubtotal = mainRentalCost + extraRentalTotal + locFees;
+            const taxAmt = payMethod === 'paypal' ? baseSubtotal * 0.06 : 0;
+            const codFee = payMethod === 'cod' ? 30 : 0;
+            const subtotal = baseSubtotal + taxAmt + codFee;
             const grand = subtotal + deposit;
-            currentTotals = { days, finalDailyRate: mainRate, rentalCost: mainRentalCost, extraRentalCost: extraRentalTotal, locFee: locFees, subtotal, deposit, grand, extraItems: extraItemsData };
+            currentTotals = { days, finalDailyRate: mainRate, rentalCost: mainRentalCost, extraRentalCost: extraRentalTotal, locFee: locFees, taxAmt, codFee, subtotal, deposit, grand, extraItems: extraItemsData, payMethod };
 
             document.getElementById('mainItemLabel').innerText = `${mainCar.name} (Daily Rate)`;
             document.getElementById('rateLabel').innerText = `RM ${mainRate}/day`;
             document.getElementById('daysLabel').innerText = `${days} Day(s)`;
             document.getElementById('extraItemsPriceList').innerHTML = extraHtml;
             document.getElementById('locationFeeLabel').innerText = `RM ${locFees.toFixed(2)}`;
+            document.getElementById('taxRow').style.display = payMethod === 'paypal' ? 'flex' : 'none';
+            document.getElementById('taxLabel').innerText = `RM ${taxAmt.toFixed(2)}`;
+            document.getElementById('codRow').style.display = payMethod === 'cod' ? 'flex' : 'none';
             document.getElementById('subtotalLabel').innerText = `RM ${subtotal.toFixed(2)}`;
             document.getElementById('totalLabel').innerText = `RM ${grand.toFixed(2)}`;
         }
@@ -1010,6 +1031,9 @@
             ${extraReview}
             <div class="review-row"><span>Pickup Date</span><span>${document.getElementById('pickupDate').value}</span></div>
             <div class="review-row"><span>Return Date</span><span>${document.getElementById('returnDate').value}</span></div>
+            <div class="review-row"><span>Payment</span><span>${{qr:'QR Payment',paypal:'PayPal (+6%)',cod:'Cash On Delivery'}[currentTotals.payMethod]||'QR Payment'}</span></div>
+            ${currentTotals.payMethod==='paypal'?`<div class="review-row"><span>PayPal Tax (6%)</span><span>RM ${currentTotals.taxAmt.toFixed(2)}</span></div>`:''}
+            ${currentTotals.payMethod==='cod'?`<div class="review-row"><span>COD Fee</span><span>RM 30.00</span></div>`:''}
             <div class="review-row"><span>Subtotal</span><span>RM ${currentTotals.subtotal.toFixed(2)}</span></div>
             <div class="review-row"><span>Security Deposit</span><span>RM ${currentTotals.deposit.toFixed(2)}</span></div>
             <div class="review-row" style="border-top:2px solid var(--green);margin-top:8px;padding-top:12px">
@@ -1033,8 +1057,12 @@
         msg += `\n📅 *RENTAL PERIOD:*\n⏱️ Duration: ${currentTotals.days} Day(s)\n`;
         msg += `🛫 Pickup: ${document.getElementById('pickupDate').value}\n📍 Loc: ${pLoc}\n`;
         msg += `🛬 Return: ${document.getElementById('returnDate').value}\n📍 Loc: ${rLoc}\n\n`;
+        const payLabels = { qr: 'QR Payment', paypal: 'PayPal (+6% tax)', cod: 'Cash On Delivery (+RM30)' };
+        msg += `💳 *PAYMENT METHOD:* ${payLabels[currentTotals.payMethod] || 'QR Payment'}\n\n`;
         msg += `💰 *PRICE SUMMARY:*\n- Daily Rate: RM ${currentTotals.finalDailyRate}/day\n`;
         msg += `- Delivery Fees: RM ${currentTotals.locFee.toFixed(2)}\n`;
+        if (currentTotals.payMethod === 'paypal') msg += `- PayPal Tax (6%): RM ${currentTotals.taxAmt.toFixed(2)}\n`;
+        if (currentTotals.payMethod === 'cod') msg += `- Cash On Delivery Fee: RM 30.00\n`;
         msg += `- Subtotal: RM ${currentTotals.subtotal.toFixed(2)}\n`;
         msg += `- Security Deposit (${1+currentTotals.extraItems.length} item(s) x RM${DEPOSIT_PER_ITEM}): RM ${currentTotals.deposit.toFixed(2)}\n`;
         msg += `----------------------------\n✨ *GRAND TOTAL: RM ${currentTotals.grand.toFixed(2)}*\n----------------------------`;
