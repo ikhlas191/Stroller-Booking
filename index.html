@@ -21,7 +21,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
-        /* ── THEME VARIABLES (File 1 + Green for Stroller) ── */
+        /* ── THEME VARIABLES ── */
         :root {
             --ink: #1b2d24;
             --ink-mid: #4a6358;
@@ -144,6 +144,40 @@
         }
         .tab-btn.active { color: var(--ink); border-bottom-color: var(--accent); background: var(--accent-pale); }
 
+        /* ── STEP BAR ── */
+        .steps-bar {
+            background: var(--white); border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm);
+        }
+        .steps-inner {
+            max-width: 680px; margin: 0 auto;
+            padding: 0 20px; display: flex;
+        }
+        .step-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; padding: 12px 6px;
+            position: relative; cursor: default; transition: all 0.3s;
+        }
+        .step-item::after {
+            content: ''; position: absolute; top: 20px;
+            left: calc(50% + 18px); width: calc(100% - 36px); height: 2px;
+            background: var(--border); transition: background 0.3s;
+        }
+        .step-item:last-child::after { display: none; }
+        .step-item.done::after { background: var(--accent); }
+        .step-num {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--border); color: var(--ink-soft);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem; font-weight: 800;
+            transition: all 0.3s; margin-bottom: 5px; position: relative; z-index: 1;
+        }
+        .step-item.active .step-num { background: var(--ink); color: #b7e4c7; box-shadow: 0 0 0 4px rgba(45,106,79,0.2); }
+        .step-item.done .step-num { background: var(--accent); color: var(--white); }
+        .step-lbl { font-size: 0.6rem; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.8px; text-align: center; }
+        .step-item.active .step-lbl { color: var(--ink); }
+        .step-item.done .step-lbl { color: var(--accent); }
+
         /* ── MAIN ── */
         .main { max-width: 680px; margin: 0 auto; padding: 24px 16px 80px; }
 
@@ -230,7 +264,7 @@
         .stroller-desc-box {
             font-size: 0.76rem; color: var(--ink-mid);
             background: var(--accent-pale);
-            padding: 11px 14px; margin-bottom: 14px;
+            padding: 11px 14px; margin-bottom: 0;
             border-radius: var(--radius-sm);
             border-left: 3px solid var(--accent-light);
             line-height: 1.5;
@@ -241,7 +275,7 @@
         .extra-items-container {
             border: 1.5px dashed var(--accent-light);
             border-radius: 14px; padding: 12px;
-            background: var(--accent-pale); margin-top: 4px;
+            background: var(--accent-pale); margin-bottom: 0;
         }
         .extra-item-entry { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
         .extra-item-entry select { flex: 1; font-size: 0.82rem; }
@@ -491,6 +525,57 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
+        /* ── COMPANY FOOTER ── */
+        .company-footer { background: linear-gradient(180deg, #0d1220 0%, #070b14 100%); }
+        .company-footer-top {
+            max-width: 680px; margin: 0 auto;
+            padding: 48px 24px 36px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 36px;
+        }
+        .cf-brand { grid-column: span 1; }
+        .cf-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .cf-icon {
+            width: 42px; height: 42px; border-radius: 10px;
+            background: linear-gradient(135deg, #40916c, #74c69d);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(64,145,108,0.3); overflow: hidden;
+        }
+        .cf-logo-img { width: 100%; height: 100%; object-fit: cover; }
+        .cf-logo-name { font-family: 'Fraunces', serif; color: white; font-size: 1rem; font-weight: 700; }
+        .cf-logo-name em { color: #b7e4c7; font-style: italic; font-weight: 400; }
+        .cf-tagline { font-size: 0.72rem; color: rgba(255,255,255,0.3); line-height: 1.6; margin-top: 4px; }
+        .cf-reg {
+            margin-top: 10px; font-size: 0.68rem; color: rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+            padding: 6px 10px; border-radius: 6px; display: inline-block; line-height: 1.6;
+        }
+        .cf-section-title {
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px;
+            color: #40916c; font-weight: 700; margin-bottom: 14px;
+            padding-bottom: 8px; border-bottom: 1px solid rgba(64,145,108,0.2);
+        }
+        .cf-about-text { font-size: 0.76rem; color: rgba(255,255,255,0.4); line-height: 1.8; }
+        .cf-about-text strong { color: rgba(255,255,255,0.65); font-weight: 600; }
+        .cf-contact-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 11px; }
+        .cf-contact-icon {
+            width: 28px; height: 28px; border-radius: 7px;
+            background: rgba(64,145,108,0.12); border: 1px solid rgba(64,145,108,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; flex-shrink: 0;
+        }
+        .cf-contact-text { font-size: 0.75rem; color: rgba(255,255,255,0.45); line-height: 1.5; }
+        .cf-contact-text a { color: #b7e4c7; text-decoration: none; }
+        .cf-contact-text a:hover { text-decoration: underline; }
+        .company-footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding: 16px 24px; max-width: 680px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 8px;
+        }
+        .cf-copy { font-size: 0.66rem; color: rgba(255,255,255,0.2); }
+        .cf-copy a { color: rgba(255,255,255,0.35); text-decoration: none; }
+
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--accent-light); border-radius: 2px; }
@@ -501,6 +586,8 @@
             .hero-logo-row { flex-direction: column; align-items: flex-start; }
             .form-row { grid-template-columns: 1fr; }
             .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+            .company-footer-top { grid-template-columns: 1fr; gap: 26px; }
+            .company-footer-bottom { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
@@ -540,219 +627,308 @@
     <button class="tab-btn" onclick="showTab('adminSection', this)">⚙️ Admin</button>
 </div>
 
+<!-- ── STEP BAR ── -->
+<div class="steps-bar" id="stepsBar">
+    <div class="steps-inner">
+        <div class="step-item active" id="step1-ind"><div class="step-num">1</div><div class="step-lbl">Details</div></div>
+        <div class="step-item" id="step2-ind"><div class="step-num">2</div><div class="step-lbl">Schedule</div></div>
+        <div class="step-item" id="step3-ind"><div class="step-num">3</div><div class="step-lbl">Extras</div></div>
+        <div class="step-item" id="step4-ind"><div class="step-num">4</div><div class="step-lbl">Confirm</div></div>
+    </div>
+</div>
+
 <!-- ── MAIN ── -->
 <div class="main">
 
     <!-- ═══ BOOKING SECTION ═══ -->
     <div id="bookingSection">
 
-        <!-- CUSTOMER DETAILS -->
-        <div class="section-card">
-            <div class="section-head">
-                <div class="section-icon">👤</div>
-                <div>
-                    <div class="section-title-text">Customer Details</div>
-                    <div class="section-sub">Tell us about yourself</div>
+        <!-- STEP 1: CUSTOMER DETAILS + STROLLER SELECTION -->
+        <div class="form-section active" id="sec1">
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">👤</div>
+                    <div>
+                        <div class="section-title-text">Customer Details</div>
+                        <div class="section-sub">Tell us about yourself</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="form-group">
+                        <label>Country of Origin <span class="req">*</span></label>
+                        <select id="custCountry"></select>
+                    </div>
                 </div>
             </div>
-            <div class="section-body">
-                <div class="form-group">
-                    <label>Country of Origin</label>
-                    <select id="custCountry"></select>
+
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">👶</div>
+                    <div>
+                        <div class="section-title-text">Toddler / Infant Information</div>
+                        <div class="section-sub">Details about your little one</div>
+                    </div>
                 </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Age <span class="req">*</span></label>
+                            <select id="custAge">
+                                <option value="Under 1 year">Under 1 year</option>
+                                <option value="1 Year">1 Year</option>
+                                <option value="2 Years">2 Years</option>
+                                <option value="3 Years">3 Years</option>
+                                <option value="4 Years">4 Years</option>
+                                <option value="5 Years">5 Years</option>
+                                <option value="6 Years">6 Years</option>
+                                <option value="7 Years">7 Years</option>
+                                <option value="8 Years">8 Years</option>
+                                <option value="9 Years">9 Years</option>
+                                <option value="10 Years">10 Years</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Weight (kg) <span class="req">*</span></label>
+                            <select id="custWeight">
+                                <option value="0-5kg">0–5 kg</option>
+                                <option value="5-10kg">5–10 kg</option>
+                                <option value="10-15kg">10–15 kg</option>
+                                <option value="15-20kg">15–20 kg</option>
+                                <option value="20-25kg">20–25 kg</option>
+                                <option value="25-30kg">25–30 kg</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">🛒</div>
+                    <div>
+                        <div class="section-title-text">Stroller Selection</div>
+                        <div class="section-sub">Choose your preferred equipment</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="stroller-preview">
+                        <div class="stroller-image-wrap">
+                            <img id="displayImg" class="stroller-image" src="https://images.unsplash.com/photo-1519689680058-324335c77eba?w=800&q=80" alt="Stroller">
+                        </div>
+                        <div class="stroller-select-wrap">
+                            <select id="carSelect" onchange="updateUI()">
+                                <option value="">Loading equipment...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="strollerDescription" class="stroller-desc-box">Select a model to view details...</div>
+                </div>
+            </div>
+
+            <!-- PRICE SUMMARY -->
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">💰</div>
+                    <div>
+                        <div class="section-title-text">Price Summary</div>
+                        <div class="section-sub">Estimated booking cost</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="price-summary">
+                        <div class="price-summary-head">🧾 Booking Estimate</div>
+                        <div class="price-row"><span id="mainItemLabel">Daily Rate</span><span id="rateLabel">RM 0</span></div>
+                        <div class="price-row"><span>Duration</span><span id="daysLabel" style="font-weight:700">Select Dates</span></div>
+                        <div id="extraItemsPriceList"></div>
+                        <div class="price-row"><span>Delivery Fees</span><span id="locationFeeLabel">RM 0.00</span></div>
+                        <div class="price-row" id="taxRow" style="display:none"><span>PayPal Tax (6%)</span><span id="taxLabel">RM 0.00</span></div>
+                        <div class="price-row" id="codRow" style="display:none"><span>Cash On Delivery Fee</span><span id="codLabel">RM 30.00</span></div>
+                        <div class="price-row before-deposit-row"><span>Subtotal</span><span id="subtotalLabel">RM 0.00</span></div>
+                        <div class="price-row"><span>Security Deposit <span style="font-size:0.7rem;color:var(--ink-soft)">(Refundable)</span></span><span id="depositLabel">RM 100.00</span></div>
+                        <div class="total-price-box">
+                            <div class="lbl">Grand Total</div>
+                            <div class="amt" id="totalLabel">RM 0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="goStep(2)">Continue to Schedule →</button>
             </div>
         </div>
 
-        <!-- TODDLER/INFANT INFORMATION -->
-        <div class="section-card">
-            <div class="section-head">
-                <div class="section-icon">👶</div>
-                <div>
-                    <div class="section-title-text">Toddler / Infant Information</div>
-                    <div class="section-sub">Details about your little one</div>
+        <!-- STEP 2: RENTAL SCHEDULE -->
+        <div class="form-section" id="sec2">
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">📅</div>
+                    <div>
+                        <div class="section-title-text">Rental Schedule</div>
+                        <div class="section-sub">Set your pickup and return dates</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Pickup Date <span class="req">*</span></label>
+                            <input type="date" id="pickupDate" onchange="calculate()">
+                        </div>
+                        <div class="form-group">
+                            <label>Return Date <span class="req">*</span></label>
+                            <input type="date" id="returnDate" onchange="calculate()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Pickup Location <span class="req">*</span></label>
+                        <select id="pickupLoc" onchange="calculate()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Return Location <span class="req">*</span></label>
+                        <select id="returnLoc" onchange="calculate()"></select>
+                    </div>
                 </div>
             </div>
-            <div class="section-body">
-                <div class="form-row">
+
+            <!-- PRICE SUMMARY -->
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">💰</div>
+                    <div>
+                        <div class="section-title-text">Price Summary</div>
+                        <div class="section-sub">Estimated booking cost</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="price-summary">
+                        <div class="price-summary-head">🧾 Booking Estimate</div>
+                        <div class="price-row"><span id="mainItemLabel2">Daily Rate</span><span id="rateLabel2">RM 0</span></div>
+                        <div class="price-row"><span>Duration</span><span id="daysLabel2" style="font-weight:700">Select Dates</span></div>
+                        <div id="extraItemsPriceList2"></div>
+                        <div class="price-row"><span>Delivery Fees</span><span id="locationFeeLabel2">RM 0.00</span></div>
+                        <div class="price-row" id="taxRow2" style="display:none"><span>PayPal Tax (6%)</span><span id="taxLabel2">RM 0.00</span></div>
+                        <div class="price-row" id="codRow2" style="display:none"><span>Cash On Delivery Fee</span><span id="codLabel2">RM 30.00</span></div>
+                        <div class="price-row before-deposit-row"><span>Subtotal</span><span id="subtotalLabel2">RM 0.00</span></div>
+                        <div class="price-row"><span>Security Deposit <span style="font-size:0.7rem;color:var(--ink-soft)">(Refundable)</span></span><span id="depositLabel2">RM 100.00</span></div>
+                        <div class="total-price-box">
+                            <div class="lbl">Grand Total</div>
+                            <div class="amt" id="totalLabel2">RM 0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+                <button class="btn btn-primary" onclick="goStep(3)">Continue to Extras →</button>
+            </div>
+        </div>
+
+        <!-- STEP 3: EXTRAS + PAYMENT METHOD -->
+        <div class="form-section" id="sec3">
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">✨</div>
+                    <div>
+                        <div class="section-title-text">Add Another Item</div>
+                        <div class="section-sub">Rent multiple strollers (Max 4)</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="extra-items-container" id="extraItemsContainer">
+                        <div id="extraItemsList"></div>
+                        <button class="btn btn-review btn-sm" onclick="addExtraItemRow()" id="btnAddItem" style="margin-top:4px">+ Add Another Stroller</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">💳</div>
+                    <div>
+                        <div class="section-title-text">Payment Method</div>
+                        <div class="section-sub">Choose your preferred way to pay</div>
+                    </div>
+                </div>
+                <div class="section-body">
                     <div class="form-group">
-                        <label>Age</label>
-                        <select id="custAge">
-                            <option value="Under 1 year">Under 1 year</option>
-                            <option value="1 Year">1 Year</option>
-                            <option value="2 Years">2 Years</option>
-                            <option value="3 Years">3 Years</option>
-                            <option value="4 Years">4 Years</option>
-                            <option value="5 Years">5 Years</option>
-                            <option value="6 Years">6 Years</option>
-                            <option value="7 Years">7 Years</option>
-                            <option value="8 Years">8 Years</option>
-                            <option value="9 Years">9 Years</option>
-                            <option value="10 Years">10 Years</option>
+                        <select id="paymentMethod" onchange="calculate()">
+                            <option value="qr">💳 QR Payment</option>
+                            <option value="paypal">🌐 PayPal (+6% tax)</option>
+                            <option value="cod">🚗 Cash On Delivery (+RM30)</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Weight (kg)</label>
-                        <select id="custWeight">
-                            <option value="0-5kg">0–5 kg</option>
-                            <option value="5-10kg">5–10 kg</option>
-                            <option value="10-15kg">10–15 kg</option>
-                            <option value="15-20kg">15–20 kg</option>
-                            <option value="20-25kg">20–25 kg</option>
-                            <option value="25-30kg">25–30 kg</option>
-                        </select>
+                </div>
+            </div>
+
+            <!-- PRICE SUMMARY -->
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">💰</div>
+                    <div>
+                        <div class="section-title-text">Price Summary</div>
+                        <div class="section-sub">Estimated booking cost</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="price-summary">
+                        <div class="price-summary-head">🧾 Booking Estimate</div>
+                        <div class="price-row"><span id="mainItemLabel3">Daily Rate</span><span id="rateLabel3">RM 0</span></div>
+                        <div class="price-row"><span>Duration</span><span id="daysLabel3" style="font-weight:700">Select Dates</span></div>
+                        <div id="extraItemsPriceList3"></div>
+                        <div class="price-row"><span>Delivery Fees</span><span id="locationFeeLabel3">RM 0.00</span></div>
+                        <div class="price-row" id="taxRow3" style="display:none"><span>PayPal Tax (6%)</span><span id="taxLabel3">RM 0.00</span></div>
+                        <div class="price-row" id="codRow3" style="display:none"><span>Cash On Delivery Fee</span><span id="codLabel3">RM 30.00</span></div>
+                        <div class="price-row before-deposit-row"><span>Subtotal</span><span id="subtotalLabel3">RM 0.00</span></div>
+                        <div class="price-row"><span>Security Deposit <span style="font-size:0.7rem;color:var(--ink-soft)">(Refundable)</span></span><span id="depositLabel3">RM 100.00</span></div>
+                        <div class="total-price-box">
+                            <div class="lbl">Grand Total</div>
+                            <div class="amt" id="totalLabel3">RM 0.00</div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="btn-row">
+                <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+                <button class="btn btn-primary" onclick="goStep(4)">Review Booking →</button>
+            </div>
         </div>
 
-        <!-- STROLLER SELECTION -->
-        <div class="section-card">
-            <div class="section-head">
-                <div class="section-icon">🛒</div>
-                <div>
-                    <div class="section-title-text">Stroller Selection</div>
-                    <div class="section-sub">Choose your preferred equipment</div>
-                </div>
-            </div>
-            <div class="section-body">
-                <div class="stroller-preview">
-                    <div class="stroller-image-wrap">
-                        <img id="displayImg" class="stroller-image" src="https://images.unsplash.com/photo-1519689680058-324335c77eba?w=800&q=80" alt="Stroller">
-                    </div>
-                    <div class="stroller-select-wrap">
-                        <select id="carSelect" onchange="updateUI()">
-                            <option value="">Loading equipment...</option>
-                        </select>
+        <!-- STEP 4: CONFIRM -->
+        <div class="form-section" id="sec4">
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">✅</div>
+                    <div>
+                        <div class="section-title-text">Confirm Booking</div>
+                        <div class="section-sub">Review your details before submitting</div>
                     </div>
                 </div>
-                <div id="strollerDescription" class="stroller-desc-box">Select a model to view details...</div>
+                <div class="section-body">
+                    <div id="reviewContent"></div>
+                </div>
             </div>
-        </div>
 
-        <!-- RENTAL SCHEDULE -->
-        <div class="section-card">
-            <div class="section-head">
-                <div class="section-icon">📅</div>
-                <div>
-                    <div class="section-title-text">Rental Schedule</div>
-                    <div class="section-sub">Set your pickup and return dates</div>
+            <div class="terms-box" id="termsBox">
+                <div class="terms-check-row">
+                    <input type="checkbox" id="termsCheck" onchange="toggleButtons()">
+                    <label for="termsCheck" id="termsDisplay">I agree to the Terms & Conditions.</label>
                 </div>
+                <div id="bookingLinks" class="links-container"></div>
             </div>
-            <div class="section-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Pickup Date</label>
-                        <input type="date" id="pickupDate" onchange="calculate()">
-                    </div>
-                    <div class="form-group">
-                        <label>Return Date</label>
-                        <input type="date" id="returnDate" onchange="calculate()">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Pickup Location</label>
-                    <select id="pickupLoc" onchange="calculate()"></select>
-                </div>
-                <div class="form-group">
-                    <label>Return Location</label>
-                    <select id="returnLoc" onchange="calculate()"></select>
-                </div>
-            </div>
-        </div>
 
-        <!-- ADD EXTRA ITEMS -->
-        <div class="section-card">
-            <div class="section-head">
-                <div class="section-icon">✨</div>
-                <div>
-                    <div class="section-title-text">Add Another Item</div>
-                    <div class="section-sub">Rent multiple strollers (Max 4)</div>
-                </div>
-            </div>
-            <div class="section-body">
-                <div class="extra-items-container" id="extraItemsContainer">
-                    <div id="extraItemsList"></div>
-                    <button class="btn btn-review btn-sm" onclick="addExtraItemRow()" id="btnAddItem" style="margin-top:4px">+ Add Another Stroller</button>
-                </div>
-            </div>
-        </div>
+            <button class="btn btn-wa" id="btnWa" onclick="handleSubmit('wa')" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Book via WhatsApp
+            </button>
+            <button class="btn btn-email" id="btnEmail" onclick="handleSubmit('email')" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                Book via Email
+            </button>
 
-        <!-- PAYMENT METHOD -->
-        <div class="section-card">
-            <div class="section-head">
-                <div class="section-icon">💳</div>
-                <div>
-                    <div class="section-title-text">Payment Method</div>
-                    <div class="section-sub">Choose your preferred way to pay</div>
-                </div>
-            </div>
-            <div class="section-body">
-                <div class="form-group">
-                    <select id="paymentMethod" onchange="calculate()">
-                        <option value="qr">💳 QR Payment</option>
-                        <option value="paypal">🌐 PayPal (+6% tax)</option>
-                        <option value="cod">🚗 Cash On Delivery (+RM30)</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- PRICE SUMMARY -->
-        <div class="section-card">
-            <div class="section-head">
-                <div class="section-icon">💰</div>
-                <div>
-                    <div class="section-title-text">Price Summary</div>
-                    <div class="section-sub">Estimated booking cost</div>
-                </div>
-            </div>
-            <div class="section-body">
-                <div class="price-summary">
-                    <div class="price-summary-head">🧾 Booking Estimate</div>
-                    <div class="price-row"><span id="mainItemLabel">Daily Rate</span><span id="rateLabel">RM 0</span></div>
-                    <div class="price-row"><span>Duration</span><span id="daysLabel" style="font-weight:700">Select Dates</span></div>
-                    <div id="extraItemsPriceList"></div>
-                    <div class="price-row"><span>Delivery Fees</span><span id="locationFeeLabel">RM 0.00</span></div>
-                    <div class="price-row" id="taxRow" style="display:none"><span>PayPal Tax (6%)</span><span id="taxLabel">RM 0.00</span></div>
-                    <div class="price-row" id="codRow" style="display:none"><span>Cash On Delivery Fee</span><span id="codLabel">RM 30.00</span></div>
-                    <div class="price-row before-deposit-row"><span>Subtotal</span><span id="subtotalLabel">RM 0.00</span></div>
-                    <div class="price-row"><span>Security Deposit <span style="font-size:0.7rem;color:var(--ink-soft)">(Refundable)</span></span><span id="depositLabel">RM 100.00</span></div>
-                    <div class="total-price-box">
-                        <div class="lbl">Grand Total</div>
-                        <div class="amt" id="totalLabel">RM 0.00</div>
-                    </div>
-                </div>
-                <div class="info-note">
-                    <span>ℹ️</span>
-                    <span>Price is an estimate. Final amount confirmed upon booking approval. Deposit fully refundable upon item return in good condition.</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- TERMS & CONDITIONS -->
-        <div class="section-card">
-            <div class="section-body">
-                <div class="terms-box">
-                    <div class="terms-check-row">
-                        <input type="checkbox" id="termsCheck" onchange="toggleButtons()">
-                        <label for="termsCheck" id="termsDisplay">I agree to the Terms & Conditions.</label>
-                    </div>
-                    <div id="bookingLinks" class="links-container"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BOOKING BUTTONS -->
-        <div class="section-card">
-            <div class="section-body">
-                <button class="btn btn-wa" id="btnWa" onclick="handleSubmit('wa')" disabled>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    Book via WhatsApp
-                </button>
-                <button class="btn btn-email" id="btnEmail" onclick="handleSubmit('email')" disabled>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                    Book via Email
-                </button>
+            <div class="btn-row">
+                <button class="btn btn-ghost" onclick="goStep(3)">← Edit Extras</button>
             </div>
         </div>
 
@@ -828,12 +1004,55 @@
     </a>
 </div>
 
-<!-- REVIEW MODAL -->
-<div id="reviewModal" class="modal-overlay">
-    <div class="modal-content">
-        <h3>📋 Booking Summary</h3>
-        <div id="reviewContent"></div>
-        <button class="btn btn-ghost" style="margin-top:18px" onclick="closeReview()">← Close & Edit</button>
+<!-- COMPANY FOOTER -->
+<div class="company-footer">
+    <div class="company-footer-top">
+        <div class="cf-brand">
+            <div class="cf-logo-row">
+                <div class="cf-icon" id="cfLogoWrap">🛒</div>
+                <div>
+                    <div class="cf-logo-name" id="cfSiteName">EZ Stroller <em>Rental</em></div>
+                </div>
+            </div>
+            <div class="cf-tagline" id="cfTagline">Premium baby gear rental services across Malaysia & Beyond.</div>
+            <div class="cf-reg" id="cfReg">
+                Wholly Owned by<br>
+                <strong style="color:rgba(255,255,255,0.5)" id="cfLegalName">Ikhlas Nineteen Resources</strong><br>
+                <span style="font-size:0.62rem" id="cfRegNo">(001561921K)</span>
+            </div>
+        </div>
+        <div>
+            <div class="cf-section-title">About Us</div>
+            <div class="cf-about-text" id="cfAboutText">
+                <strong>ezstrollerrental.com.my</strong> is Wholly Owned by <strong>Ikhlas Nineteen Resources (001561921K)</strong>.<br><br>
+                We provide professional, reliable and comfortable baby gear rental services for families throughout Malaysia.
+            </div>
+        </div>
+        <div>
+            <div class="cf-section-title">Contact Us</div>
+            <div class="cf-contact-item">
+                <div class="cf-contact-icon">📞</div>
+                <div class="cf-contact-text" id="cfPhone"><a href="tel:+60390782003">+60 3-9078 2003</a></div>
+            </div>
+            <div class="cf-contact-item">
+                <div class="cf-contact-icon">✉️</div>
+                <div class="cf-contact-text" id="cfEmail"><a href="mailto:customer.care@ezstrollerrental.com.my">customer.care@ezstrollerrental.com.my</a></div>
+            </div>
+            <div class="cf-contact-item">
+                <div class="cf-contact-icon">📍</div>
+                <div class="cf-contact-text" id="cfAddress">PW23-1 ONE MON'T KIARA,<br>No. 1 Jalan Kiara,<br>50480 Kuala Lumpur.</div>
+            </div>
+            <div class="cf-contact-item">
+                <div class="cf-contact-icon">🌐</div>
+                <div class="cf-contact-text" id="cfWebsite"><a href="https://ezstrollerrental.com.my" target="_blank">ezstrollerrental.com.my</a></div>
+            </div>
+        </div>
+    </div>
+    <div style="max-width:680px;margin:0 auto;">
+        <div class="company-footer-bottom">
+            <div class="cf-copy" id="cfCopyright">© 2025 <a href="https://ezstrollerrental.com.my" target="_blank">EZStrollerRental.com.my</a> · Ikhlas Nineteen Resources (001561921K)</div>
+            <div class="cf-copy">All Rights Reserved</div>
+        </div>
     </div>
 </div>
 
@@ -877,7 +1096,9 @@
     let inventory = {};
     let locations = {};
     let settings = {};
-    let currentTotals = { days: 0, finalDailyRate: 0, rentalCost: 0, extraRentalCost: 0, locFee: 0, subtotal: 0, deposit: 100, grand: 0, extraItems: [] };
+    let currentTotals = { days: 0, finalDailyRate: 0, rentalCost: 0, extraRentalCost: 0, locFee: 0, subtotal: 0, deposit: 100, grand: 0, extraItems: [], payMethod: 'qr' };
+    let currentStep = 1;
+    let adminClicks = 0;
 
     function calculateDeposit() {
         const extraCount = document.querySelectorAll(".extra-item-select").length;
@@ -1015,12 +1236,21 @@
         const locFees = (locations[pLocId]?.price || 0) + (locations[rLocId]?.price || 0);
 
         const deposit = calculateDeposit();
-        document.getElementById('depositLabel').innerText = `RM ${deposit.toFixed(2)}`;
+        ['depositLabel', 'depositLabel2', 'depositLabel3'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = `RM ${deposit.toFixed(2)}`;
+        });
 
         if (d1 && d2) {
             const days = Math.floor((new Date(d2) - new Date(d1)) / 86400000) + 1;
 
-            if (days < MIN_DAYS) { document.getElementById('daysLabel').innerText = `Min. ${MIN_DAYS} Day Required`; return; }
+            if (days < MIN_DAYS) {
+                ['daysLabel', 'daysLabel2', 'daysLabel3'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerText = `Min. ${MIN_DAYS} Day Required`;
+                });
+                return;
+            }
 
             const mainRate = getRate(mainCar, days);
             const mainRentalCost = days * mainRate;
@@ -1044,16 +1274,45 @@
             const grand = subtotal + deposit;
             currentTotals = { days, finalDailyRate: mainRate, rentalCost: mainRentalCost, extraRentalCost: extraRentalTotal, locFee: locFees, taxAmt, codFee, subtotal, deposit, grand, extraItems: extraItemsData, payMethod };
 
-            document.getElementById('mainItemLabel').innerText = `${mainCar.name} (Daily Rate)`;
-            document.getElementById('rateLabel').innerText = `RM ${mainRate}/day`;
-            document.getElementById('daysLabel').innerText = `${days} Day(s)`;
-            document.getElementById('extraItemsPriceList').innerHTML = extraHtml;
-            document.getElementById('locationFeeLabel').innerText = `RM ${locFees.toFixed(2)}`;
-            document.getElementById('taxRow').style.display = payMethod === 'paypal' ? 'flex' : 'none';
-            document.getElementById('taxLabel').innerText = `RM ${taxAmt.toFixed(2)}`;
-            document.getElementById('codRow').style.display = payMethod === 'cod' ? 'flex' : 'none';
-            document.getElementById('subtotalLabel').innerText = `RM ${subtotal.toFixed(2)}`;
-            document.getElementById('totalLabel').innerText = `RM ${grand.toFixed(2)}`;
+            // Update all 3 price summaries
+            ['rateLabel', 'mainItemLabel', 'daysLabel', 'locationFeeLabel', 'taxLabel', 'taxRow', 'codLabel', 'codRow', 'subtotalLabel', 'totalLabel'].forEach(id => {
+                ['', '2', '3'].forEach(suffix => {
+                    const elId = id + suffix;
+                    const el = document.getElementById(elId);
+                    if (!el) return;
+                    if (elId === 'mainItemLabel' || elId === 'mainItemLabel2' || elId === 'mainItemLabel3')
+                        el.innerText = `${mainCar.name} (Daily Rate)`;
+                    else if (elId === 'rateLabel' || elId === 'rateLabel2' || elId === 'rateLabel3')
+                        el.innerText = `RM ${mainRate}/day`;
+                    else if (elId === 'daysLabel' || elId === 'daysLabel2' || elId === 'daysLabel3')
+                        el.innerText = `${days} Day(s)`;
+                    else if (elId === 'locationFeeLabel' || elId === 'locationFeeLabel2' || elId === 'locationFeeLabel3')
+                        el.innerText = `RM ${locFees.toFixed(2)}`;
+                    else if (elId === 'taxLabel' || elId === 'taxLabel2' || elId === 'taxLabel3')
+                        el.innerText = `RM ${taxAmt.toFixed(2)}`;
+                    else if (elId === 'codLabel' || elId === 'codLabel2' || elId === 'codLabel3')
+                        el.innerText = `RM 30.00`;
+                    else if (elId === 'subtotalLabel' || elId === 'subtotalLabel2' || elId === 'subtotalLabel3')
+                        el.innerText = `RM ${subtotal.toFixed(2)}`;
+                    else if (elId === 'totalLabel' || elId === 'totalLabel2' || elId === 'totalLabel3')
+                        el.innerText = `RM ${grand.toFixed(2)}`;
+                });
+            });
+
+            ['extraItemsPriceList', 'extraItemsPriceList2', 'extraItemsPriceList3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = extraHtml;
+            });
+
+            ['taxRow', 'taxRow2', 'taxRow3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = payMethod === 'paypal' ? 'flex' : 'none';
+            });
+
+            ['codRow', 'codRow2', 'codRow3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = payMethod === 'cod' ? 'flex' : 'none';
+            });
         }
         toggleButtons();
     }
@@ -1073,19 +1332,53 @@
         document.getElementById('btnEmail').disabled = !ok;
     }
 
-    function openReview() {
+    function goStep(n) {
+        if (n > 1) {
+            if (!document.getElementById('custCountry').value) return;
+            if (!document.getElementById('custAge').value) return;
+            if (!document.getElementById('custWeight').value) return;
+            if (!document.getElementById('carSelect').value) return;
+        }
+        if (n > 2) {
+            if (!document.getElementById('pickupDate').value) return;
+            if (!document.getElementById('returnDate').value) return;
+            if (currentTotals.days < MIN_DAYS) return;
+        }
+        if (n > 3) { renderReview(); }
+
+        currentStep = n;
+        document.querySelectorAll('.form-section').forEach((s, i) => s.classList.toggle('active', i + 1 === n));
+        document.querySelectorAll('.step-item').forEach((s, i) => {
+            s.classList.remove('active', 'done');
+            if (i + 1 < n) s.classList.add('done');
+            if (i + 1 === n) s.classList.add('active');
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderReview() {
         const car = inventory[document.getElementById('carSelect').value];
-        if (!car) return;
-        const extraReview = currentTotals.extraItems.map(i => `<div class="review-row"><span>Extra: ${i.name}</span><span>RM ${i.cost.toFixed(2)}</span></div>`).join('');
+        const country = document.getElementById('custCountry').value;
+        const age = document.getElementById('custAge').value;
+        const weight = document.getElementById('custWeight').value;
+        const pickupL = locations[document.getElementById('pickupLoc').value]?.name || '-';
+        const returnL = locations[document.getElementById('returnLoc').value]?.name || '-';
+
+        const extraReview = currentTotals.extraItems.map(i => `<div class="review-row"><span>+ ${i.name}</span><span>RM ${i.cost.toFixed(2)}</span></div>`).join('');
+        const payLabels = { qr: 'QR Payment', paypal: 'PayPal (+6%)', cod: 'Cash On Delivery (+RM30)' };
+
         document.getElementById('reviewContent').innerHTML = `
-            <div class="review-row"><span>Country</span><span>${document.getElementById('custCountry').value}</span></div>
-            <div class="review-row"><span>Toddler</span><span>${document.getElementById('custAge').value} (${document.getElementById('custWeight').value})</span></div>
-            <div class="review-row"><span>Main Stroller</span><span>${car.name}</span></div>
-            <div class="review-row"><span>Duration</span><span>${currentTotals.days} Days @ RM ${currentTotals.finalDailyRate}/day</span></div>
-            ${extraReview}
+            <div class="review-row"><span>Country</span><span>${country}</span></div>
+            <div class="review-row"><span>Toddler</span><span>${age} · ${weight}</span></div>
+            <div class="review-row"><span>Main Stroller</span><span>${car?.name || '-'}</span></div>
             <div class="review-row"><span>Pickup Date</span><span>${document.getElementById('pickupDate').value}</span></div>
             <div class="review-row"><span>Return Date</span><span>${document.getElementById('returnDate').value}</span></div>
-            <div class="review-row"><span>Payment</span><span>${{qr:'QR Payment',paypal:'PayPal (+6%)',cod:'Cash On Delivery'}[currentTotals.payMethod]||'QR Payment'}</span></div>
+            <div class="review-row"><span>Duration</span><span>${currentTotals.days} Days @ RM ${currentTotals.finalDailyRate}/day</span></div>
+            <div class="review-row"><span>Pickup Location</span><span>${pickupL}</span></div>
+            <div class="review-row"><span>Return Location</span><span>${returnL}</span></div>
+            ${extraReview}
+            <div class="review-row"><span>Delivery Fees</span><span>RM ${currentTotals.locFee.toFixed(2)}</span></div>
+            <div class="review-row"><span>Payment Method</span><span>${payLabels[currentTotals.payMethod] || 'QR Payment'}</span></div>
             ${currentTotals.payMethod==='paypal'?`<div class="review-row"><span>PayPal Tax (6%)</span><span>RM ${currentTotals.taxAmt.toFixed(2)}</span></div>`:''}
             ${currentTotals.payMethod==='cod'?`<div class="review-row"><span>COD Fee</span><span>RM 30.00</span></div>`:''}
             <div class="review-row"><span>Subtotal</span><span>RM ${currentTotals.subtotal.toFixed(2)}</span></div>
@@ -1094,10 +1387,11 @@
                 <span style="color:var(--accent);font-weight:800;font-size:0.9rem">GRAND TOTAL</span>
                 <span style="color:var(--accent);font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700">RM ${currentTotals.grand.toFixed(2)}</span>
             </div>`;
-        document.getElementById('reviewModal').style.display = 'flex';
-    }
 
-    function closeReview() { document.getElementById('reviewModal').style.display = 'none'; }
+        document.getElementById('termsCheck').checked = false;
+        document.getElementById('termsBox').classList.remove('agreed');
+        toggleButtons();
+    }
 
     function handleSubmit(method) {
         const car = inventory[document.getElementById('carSelect').value];
@@ -1158,7 +1452,7 @@
         const editId = document.getElementById('editLocIdx').value || Date.now();
         const name = document.getElementById('newLocName').value.trim();
         const price = parseFloat(document.getElementById('newLocPrice').value) || 0;
-        if (!name) { alert("Please enter location name."); return; }
+        if (!name) return;
         db.ref('ez_stroller_locations/' + editId).set({ name, price }).then(cancelLocEdit);
     }
 
@@ -1192,29 +1486,32 @@
     function deleteItem(path) { if (confirm("Delete this item?")) db.ref(path).remove(); }
 
     function showTab(tabId, btn) {
-        document.querySelectorAll('[id^="booking"], [id^="admin"]').forEach(el => {
-            if (el.id === tabId) el.style.display = 'block';
-            else if (el.id === 'bookingSection' || el.id === 'adminSection') el.style.display = 'none';
-        });
+        if (tabId === 'bookingSection') {
+            document.getElementById('bookingSection').style.display = 'block';
+            document.getElementById('adminSection').style.display = 'none';
+            document.getElementById('stepsBar').style.display = 'block';
+        } else {
+            document.getElementById('bookingSection').style.display = 'none';
+            document.getElementById('adminSection').style.display = 'block';
+            document.getElementById('stepsBar').style.display = 'none';
+        }
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }
 
-    let clicks = 0;
     document.getElementById('adminTrigger').onclick = () => {
-        clicks++;
-        if (clicks === 5) {
+        adminClicks++;
+        if (adminClicks === 5) {
             if (prompt("Admin Password:") === ADMIN_PASS) document.getElementById('navTabs').classList.add('visible');
-            clicks = 0;
+            adminClicks = 0;
         }
-        setTimeout(() => clicks = 0, 2000);
+        setTimeout(() => adminClicks = 0, 2000);
     };
 
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', e => {
         e.preventDefault(); deferredPrompt = e;
-        const b = document.getElementById('installBanner');
-        if (b) b.style.display = 'flex';
+        document.getElementById('installBanner').style.display = 'flex';
     });
     function pwaInstall() {
         document.getElementById('installBanner').style.display = 'none';
