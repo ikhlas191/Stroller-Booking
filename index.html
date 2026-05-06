@@ -3,92 +3,322 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>EZ Stroller Rental - UPDATED</title>
+    <title>EZ Stroller Rental</title>
+    <meta name="application-name" content="EZ Stroller">
+    <meta name="description" content="Premium Baby Gear Rental for Your Little Ones">
     <meta name="theme-color" content="#2d6a4f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EZ Stroller">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    
     <style>
         :root {
-            --primary: #2d6a4f;
-            --primary-light: #40916c;
-            --primary-pale: #d8f3dc;
             --ink: #1b2d24;
             --ink-mid: #4a6358;
             --ink-soft: #8aab99;
+            --primary: #2d6a4f;
+            --primary-light: #40916c;
+            --primary-pale: #d8f3dc;
+            --cream: #fefae0;
             --white: #ffffff;
             --border: #d4e9dc;
             --border-dark: #b7d9c3;
             --red: #e05c4b;
+            --shadow-sm: 0 2px 8px rgba(45,106,79,0.07);
             --shadow-md: 0 8px 32px rgba(45,106,79,0.11);
+            --shadow-lg: 0 20px 60px rgba(45,106,79,0.15);
             --radius: 14px;
             --radius-sm: 8px;
         }
-
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: #f0f7f2;
             color: var(--ink);
             min-height: 100vh;
         }
-
-        /* STROLLER IMAGE */
-        .stroller-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            display: block;
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            position: relative; overflow: hidden;
+            cursor: pointer; user-select: none;
         }
-
-        /* PAYMENT METHODS */
+        .hero-bg {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 70% 50%, rgba(74,145,108,0.13) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 80% at 10% 80%, rgba(74,145,108,0.07) 0%, transparent 50%);
+        }
+        .hero-lines {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(74,145,108,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(74,145,108,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        .hero-inner {
+            position: relative; z-index: 2;
+            max-width: 680px; margin: 0 auto;
+            padding: 40px 24px 48px; text-align: center;
+        }
+        .hero-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.9);
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase;
+            padding: 5px 14px; border-radius: 20px; margin-bottom: 18px;
+        }
+        .hero-logo-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: 16px; margin-bottom: 14px;
+        }
+        .hero-icon {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, var(--primary-light), #74c69d);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 20px rgba(64,145,108,0.4);
+            flex-shrink: 0; overflow: hidden;
+        }
+        .hero-logo-img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px; }
+        .hero-name {
+            font-family: 'Fraunces', serif;
+            font-size: 2rem; font-weight: 700;
+            color: var(--white); line-height: 1.1; text-align: left;
+        }
+        .hero-name em { color: #b7e4c7; font-style: italic; font-weight: 400; }
+        .hero-tagline {
+            color: rgba(255,255,255,0.45);
+            font-size: 0.78rem; letter-spacing: 1px; margin-top: 6px; text-align: left;
+        }
+        #db-status {
+            font-size: 0.62rem; text-align: center;
+            padding: 7px; color: var(--ink-soft);
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            background: var(--white); border-bottom: 1px solid var(--border);
+        }
+        .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        .dot-online { background: #25d366; box-shadow: 0 0 5px #25d366; }
+        .dot-offline { background: var(--red); }
+        .tabs { display: none; padding: 10px 16px 0; background: var(--white); border-bottom: 1px solid var(--border); }
+        .tabs.visible { display: flex; gap: 4px; }
+        .tab-btn {
+            flex: 1; padding: 10px 8px;
+            border: none; border-bottom: 3px solid transparent;
+            background: transparent; color: var(--ink-soft);
+            font-weight: 700; font-size: 0.78rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer; transition: all 0.2s;
+            border-radius: 8px 8px 0 0;
+        }
+        .tab-btn.active { color: var(--ink); border-bottom-color: var(--primary); background: var(--primary-pale); }
+        .steps-bar {
+            background: var(--white); border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm);
+        }
+        .steps-inner {
+            max-width: 680px; margin: 0 auto;
+            padding: 0 20px; display: flex;
+        }
+        .step-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; padding: 12px 6px;
+            position: relative; cursor: default; transition: all 0.3s;
+        }
+        .step-item::after {
+            content: ''; position: absolute; top: 20px;
+            left: calc(50% + 18px); width: calc(100% - 36px); height: 2px;
+            background: var(--border); transition: background 0.3s;
+        }
+        .step-item:last-child::after { display: none; }
+        .step-item.done::after { background: var(--primary); }
+        .step-num {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--border); color: var(--ink-soft);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem; font-weight: 800;
+            transition: all 0.3s; margin-bottom: 5px; position: relative; z-index: 1;
+        }
+        .step-item.active .step-num { background: var(--ink); color: #b7e4c7; box-shadow: 0 0 0 4px rgba(45,106,79,0.2); }
+        .step-item.done .step-num { background: var(--primary); color: var(--white); }
+        .step-lbl { font-size: 0.6rem; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.8px; text-align: center; }
+        .step-item.active .step-lbl { color: var(--ink); }
+        .step-item.done .step-lbl { color: var(--primary); }
+        .main { max-width: 680px; margin: 0 auto; padding: 24px 16px 80px; }
+        .form-section { display: none; animation: fadeSlide 0.35s ease; }
+        .form-section.active { display: block; }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .section-card {
+            background: var(--white); border-radius: 20px;
+            border: 1px solid var(--border); box-shadow: var(--shadow-md);
+            overflow: hidden; margin-bottom: 16px;
+        }
+        .section-head {
+            padding: 18px 22px 16px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+            background: linear-gradient(to right, #fafaf7, var(--white));
+        }
+        .section-icon {
+            width: 38px; height: 38px; background: var(--primary);
+            border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; font-size: 1rem; flex-shrink: 0; color: white;
+        }
+        .section-title-text { font-family: 'Fraunces', serif; font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+        .section-sub { font-size: 0.72rem; color: var(--ink-soft); margin-top: 2px; }
+        .section-body { padding: 20px 22px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .form-row.single { grid-template-columns: 1fr; }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 14px; }
+        .form-group:last-child { margin-bottom: 0; }
+        label {
+            font-size: 0.7rem; font-weight: 700; color: var(--ink-mid);
+            text-transform: uppercase; letter-spacing: 0.8px;
+            margin-bottom: 6px; display: flex; align-items: center; gap: 4px;
+        }
+        label .req { color: var(--primary); }
+        input, select, textarea {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.88rem; color: var(--ink);
+            background: #f8fdf9; border: 1.5px solid var(--border-dark);
+            border-radius: var(--radius-sm); padding: 11px 14px;
+            outline: none; width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            appearance: none; -webkit-appearance: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary); background: var(--white);
+            box-shadow: 0 0 0 3px rgba(45,106,79,0.15);
+        }
+        input::placeholder, textarea::placeholder { color: var(--ink-soft); font-weight: 400; }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238aab99' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 14px center;
+            padding-right: 38px; cursor: pointer;
+        }
+        textarea { resize: vertical; min-height: 70px; line-height: 1.6; }
+        .stroller-preview {
+            border: 1.5px solid var(--border); border-radius: var(--radius);
+            overflow: hidden; margin-bottom: 14px; background: #f0f7f2;
+        }
+        .stroller-image-wrap {
+            width: 100%; height: 200px; overflow: hidden;
+            background: linear-gradient(135deg,#f0f7f2,#e8f5ec);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .stroller-image {
+            width: 100%; height: 100%; object-fit: cover; object-position: center;
+            display: block; transition: transform 0.4s ease;
+        }
+        .stroller-preview:hover .stroller-image { transform: scale(1.03); }
+        .stroller-select-wrap {
+            padding: 10px 12px; background: var(--white);
+            border-top: 1px solid var(--border);
+        }
+        .stroller-select-wrap select { background: #f8fdf9; }
+        .stroller-desc-box {
+            font-size: 0.76rem; color: var(--ink-mid);
+            background: var(--primary-pale);
+            padding: 11px 14px; margin-bottom: 0;
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--primary-light);
+            line-height: 1.5;
+            min-height: 20px;
+        }
+        .extra-items-container {
+            border: 1.5px dashed var(--primary-light);
+            border-radius: 14px; padding: 12px;
+            background: var(--primary-pale); margin-bottom: 0;
+        }
+        .extra-item-entry { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+        .extra-item-entry select { flex: 1; font-size: 0.82rem; }
+        .extra-item-entry .btn { margin-bottom: 0; }
+        .price-summary {
+            background: linear-gradient(135deg, #f0faf4 0%, #e8f5ec 100%);
+            border: 1.5px solid var(--border); border-radius: var(--radius);
+            padding: 20px; margin: 16px 0;
+        }
+        .price-summary-head {
+            font-family: 'Fraunces', serif; font-size: 0.95rem;
+            color: var(--ink); font-weight: 700; margin-bottom: 14px;
+            padding-bottom: 10px; border-bottom: 1.5px dashed var(--border);
+            display: flex; align-items: center; gap: 6px;
+        }
+        .price-row {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 8px; font-size: 0.84rem;
+        }
+        .price-row span:first-child { color: var(--ink-soft); }
+        .price-row span:last-child { font-weight: 600; color: var(--ink); }
+        .extra-item-row { color: var(--ink-soft) !important; font-size: 0.78rem !important; padding-left: 8px; }
+        .extra-item-row span:last-child { color: var(--ink-mid) !important; }
+        .before-deposit-row { border-top: 1.5px dashed var(--border); margin-top: 10px; padding-top: 10px; }
+        .before-deposit-row span { font-weight: 700 !important; }
+        .total-price-box {
+            background: var(--primary); border-radius: var(--radius-sm);
+            padding: 14px 16px; display: flex;
+            justify-content: space-between; align-items: center; margin-top: 14px;
+        }
+        .total-price-box .lbl {
+            font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase;
+            color: rgba(255,255,255,0.6); font-weight: 700;
+        }
+        .total-price-box .amt {
+            font-family: 'Fraunces', serif; font-size: 1.6rem;
+            color: white; font-weight: 700;
+        }
         .payment-methods { display: grid; gap: 10px; }
         .payment-option {
             display: flex; align-items: center; gap: 10px;
             padding: 12px; background: #f8fdf9; border: 1.5px solid var(--border-dark);
-            border-radius: 8px; cursor: pointer;
+            border-radius: 8px; cursor: pointer; transition: all 0.2s;
         }
+        .payment-option:hover { background: var(--primary-pale); border-color: var(--primary); }
         .payment-option input[type="radio"] {
             width: 18px; height: 18px; accent-color: var(--primary);
+            flex-shrink: 0; cursor: pointer;
         }
-        .payment-label { flex: 1; }
-        .payment-name { font-weight: 700; font-size: 0.85rem; }
+        .payment-label {
+            display: flex; flex-direction: column; gap: 2px; flex: 1;
+            cursor: pointer;
+        }
+        .payment-name { font-weight: 700; font-size: 0.85rem; color: var(--ink); }
         .payment-desc { font-size: 0.72rem; color: var(--ink-soft); }
-
-        /* TERMS BOX - DARK THEME */
         .terms-box {
             background: #fffdf0; border: 1.5px solid #e8d98a;
-            border-radius: 8px; padding: 14px; margin-bottom: 16px;
+            border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;
         }
         .terms-box.agreed {
-            background: #1b2d24;
-            border-color: #2d6a4f;
+            background: #1b2d24; border-color: #2d6a4f;
         }
-        .terms-box.agreed label {
-            color: #b7e4c7 !important;
-        }
-        .terms-check-row {
-            display: flex; align-items: flex-start; gap: 10px;
-        }
+        .terms-check-row { display: flex; align-items: flex-start; gap: 10px; }
         .terms-check-row input[type="checkbox"] {
             width: 18px; height: 18px; margin-top: 1px;
-            accent-color: var(--primary); cursor: pointer;
+            accent-color: var(--primary); flex-shrink: 0; cursor: pointer;
         }
         .terms-check-row label {
             font-size: 0.78rem; color: #7a6020; cursor: pointer;
             line-height: 1.5; margin: 0; font-weight: 500;
+            text-transform: none; letter-spacing: 0;
         }
-
-        /* WE ACCEPT LOGOS */
+        .terms-box.agreed .terms-check-row label { color: #b7e4c7; }
         .we-accept-section {
             background: var(--white); border: 1.5px solid var(--border);
-            border-radius: 8px; padding: 14px; margin-bottom: 16px;
+            border-radius: var(--radius-sm); padding: 14px;
+            margin-bottom: 16px;
         }
         .we-accept-title {
             font-size: 0.72rem; font-weight: 700; color: var(--ink-mid);
-            text-transform: uppercase; margin-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 0.8px;
+            margin-bottom: 10px;
         }
         .we-accept-logos {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
@@ -101,117 +331,1409 @@
         .logo-item img {
             max-width: 100%; max-height: 40px; object-fit: contain;
         }
-
-        /* GALLERY */
+        .links-container {
+            margin-top: 10px; padding-top: 10px;
+            border-top: 1px dashed #e8d98a;
+            display: flex; flex-wrap: wrap; gap: 8px;
+        }
+        .terms-link-item {
+            font-size: 0.72rem; color: var(--ink-mid); text-decoration: none;
+            border: 1px solid var(--border-dark); padding: 4px 10px;
+            border-radius: 20px; font-weight: 600; transition: all 0.15s;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .terms-link-item:hover { background: var(--primary-pale); border-color: var(--primary); color: var(--ink); }
+        .btn {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700; font-size: 0.88rem;
+            padding: 14px 20px; border-radius: var(--radius-sm);
+            border: none; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            transition: all 0.2s; text-decoration: none;
+            letter-spacing: 0.3px; white-space: nowrap;
+            width: 100%; justify-content: center; margin-bottom: 10px;
+        }
+        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .btn:active:not(:disabled) { transform: scale(0.97); }
+        .btn-row { display: flex; gap: 12px; margin-top: 20px; }
+        .btn-row .btn { margin-bottom: 0; }
+        .btn-wa {
+            background: linear-gradient(135deg, #25d366, #1aad52);
+            color: white; box-shadow: 0 4px 14px rgba(37,211,102,0.3);
+        }
+        .btn-wa:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(37,211,102,0.4); transform: translateY(-1px); }
+        .btn-email {
+            background: linear-gradient(135deg, #e05c4b, #c0392b);
+            color: white; box-shadow: 0 4px 14px rgba(224,92,75,0.3);
+        }
+        .btn-email:hover:not(:disabled) { transform: translateY(-1px); }
+        .btn-primary {
+            background: var(--primary); color: white; box-shadow: var(--shadow-sm);
+        }
+        .btn-primary:hover:not(:disabled) { background: #1f4a36; transform: translateY(-1px); }
+        .btn-ghost {
+            background: transparent; color: var(--ink-mid);
+            border: 1.5px solid var(--border-dark);
+        }
+        .btn-ghost:hover { background: #f8fdf9; }
+        .btn-review {
+            background: transparent; color: var(--primary);
+            border: 2px solid var(--primary-light);
+        }
+        .btn-review:hover { background: var(--primary-pale); }
+        .btn-save {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white; box-shadow: 0 4px 14px rgba(45,106,79,0.3);
+        }
+        .btn-save:hover { transform: translateY(-1px); }
+        .btn-sm { padding: 6px 12px; font-size: 0.72rem; width: auto; border-radius: var(--radius-sm); margin-bottom: 0; }
+        .btn-danger { background: var(--red); color: white; }
+        .btn-edit { background: #4a90d9; color: white; }
+        .trust-strip {
+            display: flex; gap: 8px; padding: 14px 16px;
+            background: var(--primary-pale); border-top: 1px solid var(--border);
+        }
+        .trust-item {
+            flex: 1; text-align: center; background: var(--white);
+            border-radius: 12px; padding: 10px 6px; border: 1px solid var(--border);
+        }
+        .trust-icon { font-size: 1.1rem; margin-bottom: 3px; }
+        .trust-lbl { font-size: 0.56rem; color: var(--ink-soft); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .gallery-section {
             background: var(--white); border: 1.5px solid var(--border);
-            border-radius: 14px; padding: 16px; margin-bottom: 16px;
+            border-radius: var(--radius); padding: 16px;
+            margin-bottom: 16px;
         }
         .gallery-title {
             font-family: 'Fraunces', serif; font-size: 0.95rem;
             color: var(--ink); font-weight: 700; margin-bottom: 12px;
         }
         .gallery-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
         }
         .gallery-item {
-            aspect-ratio: 1; border-radius: 12px; overflow: hidden;
-            background: #f8fdf9; border: 1px solid var(--border);
-            cursor: pointer; transition: transform 0.3s;
+            aspect-ratio: 1; border-radius: 12px;
+            overflow: hidden; background: #f8fdf9;
+            border: 1px solid var(--border); cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-        .gallery-item:hover { transform: scale(1.05); }
+        .gallery-item:hover { transform: scale(1.05); box-shadow: var(--shadow-md); }
         .gallery-item img {
-            width: 100%; height: 100%; object-fit: cover; display: block;
+            width: 100%; height: 100%; object-fit: cover;
+            display: block;
         }
         .gallery-item.empty {
             display: flex; align-items: center; justify-content: center;
             color: var(--ink-soft); font-size: 2rem;
         }
-
-        /* COLOR PICKER */
+        .bottom-actions {
+            display: flex; gap: 10px; padding: 14px 16px 18px;
+            background: var(--white); border-top: 1px solid var(--border);
+        }
+        .btn-bottom {
+            flex: 1; border: none; padding: 13px 10px; border-radius: var(--radius-sm);
+            cursor: pointer; font-size: 0.8rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; text-decoration: none;
+            font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s;
+        }
+        .btn-back { background: #f8fdf9; color: var(--ink); border: 1.5px solid var(--border-dark); }
+        .btn-back:hover { background: #e8f5ec; }
+        .btn-help {
+            background: linear-gradient(135deg, #25d366, #1aad52);
+            color: white; box-shadow: 0 4px 12px rgba(37,211,102,0.3);
+        }
+        .admin-head { background: linear-gradient(135deg, var(--primary), var(--primary-light)); padding: 22px 24px; }
+        .admin-head h2 { font-family: 'Fraunces', serif; color: white; font-size: 1.2rem; font-weight: 700; }
+        .admin-head p { color: rgba(255,255,255,0.4); font-size: 0.74rem; margin-top: 4px; }
+        .admin-section-title {
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px;
+            color: var(--primary); font-weight: 800; margin: 22px 0 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .admin-section-title::after { content: ''; flex: 1; height: 1px; background: rgba(45,106,79,0.2); }
+        .admin-section-title:first-child { margin-top: 0; }
+        .admin-form-box {
+            background: #f8fdf9; border: 1.5px dashed var(--border-dark);
+            border-radius: var(--radius-sm); padding: 14px; margin-bottom: 14px;
+        }
+        .admin-form-box input,
+        .admin-form-box select,
+        .admin-form-box textarea { margin-bottom: 8px; background: var(--white); }
+        .admin-form-box .flex-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .admin-form-box .flex-row > div { flex: 1; }
+        .admin-form-box .flex-row input { margin-bottom: 0; }
+        .admin-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 11px 14px; background: #f8fdf9; margin-bottom: 8px;
+            border-radius: var(--radius-sm); border: 1px solid var(--border);
+            gap: 10px; transition: border-color 0.2s;
+        }
+        .admin-item:hover { border-color: var(--primary-light); }
+        .admin-item-info { flex: 1; font-size: 0.8rem; }
+        .admin-item-info strong { display: block; color: var(--ink); margin-bottom: 2px; }
+        .admin-item-info span { color: var(--ink-soft); font-size: 0.74rem; }
+        .admin-btns { display: flex; gap: 6px; flex-shrink: 0; }
+        .admin-body { padding: 22px; }
+        .pricing-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 8px; background: white; padding: 10px; border-radius: 10px;
+            border: 1px solid var(--border); margin-bottom: 10px;
+        }
+        .pricing-grid label { font-size: 0.68rem; color: var(--ink-soft); margin-bottom: 2px; }
+        .pricing-grid input { margin-bottom: 0 !important; }
         .color-picker-group {
             display: flex; gap: 10px; align-items: center; margin-bottom: 12px;
         }
+        .color-picker-group label { margin-bottom: 0; }
         .color-picker-group input[type="color"] {
-            width: 50px; height: 40px; padding: 2px;
-            border: 1px solid var(--border-dark); border-radius: 6px; cursor: pointer;
+            width: 50px; height: 40px; padding: 2px; border: 1px solid var(--border-dark);
+            border-radius: 6px; cursor: pointer; margin-bottom: 0;
         }
-
+        .review-row {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            border-bottom: 1px solid var(--border); padding: 9px 0; font-size: 0.83rem; gap: 12px;
+        }
+        .review-row span:first-child { color: var(--ink-soft); font-weight: 600; flex-shrink: 0; }
+        .review-row span:last-child { color: var(--ink); font-weight: 700; text-align: right; }
+        .company-footer { background: linear-gradient(180deg, #0d1220 0%, #070b14 100%); }
+        .company-footer-top {
+            max-width: 680px; margin: 0 auto;
+            padding: 48px 24px 36px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 36px;
+        }
+        .cf-brand { grid-column: span 1; }
+        .cf-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .cf-icon {
+            width: 42px; height: 42px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary-light), #74c69d);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(64,145,108,0.3); overflow: hidden;
+        }
+        .cf-logo-img { width: 100%; height: 100%; object-fit: cover; }
+        .cf-logo-name { font-family: 'Fraunces', serif; color: white; font-size: 1rem; font-weight: 700; }
+        .cf-logo-name em { color: #b7e4c7; font-style: italic; font-weight: 400; }
+        .cf-tagline { font-size: 0.72rem; color: rgba(255,255,255,0.3); line-height: 1.6; margin-top: 4px; }
+        .cf-section-title {
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px;
+            color: var(--primary-light); font-weight: 700; margin-bottom: 14px;
+            padding-bottom: 8px; border-bottom: 1px solid rgba(64,145,108,0.2);
+        }
+        .cf-about-text { font-size: 0.76rem; color: rgba(255,255,255,0.4); line-height: 1.8; }
+        .cf-about-text strong { color: rgba(255,255,255,0.65); font-weight: 600; }
+        .cf-contact-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 11px; }
+        .cf-contact-icon {
+            width: 28px; height: 28px; border-radius: 7px;
+            background: rgba(64,145,108,0.12); border: 1px solid rgba(64,145,108,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; flex-shrink: 0;
+        }
+        .cf-contact-text { font-size: 0.75rem; color: rgba(255,255,255,0.45); line-height: 1.5; }
+        .cf-contact-text a { color: #b7e4c7; text-decoration: none; }
+        .cf-contact-text a:hover { text-decoration: underline; }
+        .company-footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding: 16px 24px; max-width: 680px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 8px;
+        }
+        .cf-copy { font-size: 0.66rem; color: rgba(255,255,255,0.2); }
+        .cf-copy a { color: rgba(255,255,255,0.35); text-decoration: none; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 2px; }
         @media (max-width: 600px) {
+            .hero-name { font-size: 1.5rem; }
+            .hero-logo-row { flex-direction: column; align-items: flex-start; }
+            .form-row { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+            .company-footer-top { grid-template-columns: 1fr; gap: 26px; }
+            .company-footer-bottom { flex-direction: column; text-align: center; }
             .we-accept-logos { grid-template-columns: repeat(3, 1fr); }
             .gallery-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
+<div class="hero" id="adminTrigger">
+    <div class="hero-bg"></div>
+    <div class="hero-lines"></div>
+    <div class="hero-inner">
+        <div class="hero-pill">🌿 Trusted by Families Across Malaysia</div>
+        <div class="hero-logo-row">
+            <div class="hero-icon" id="heroLogoWrap">🛒</div>
+            <div>
+                <div class="hero-name" id="heroSiteName">EZ Stroller <em>Rental</em></div>
+                <div class="hero-tagline" id="heroTagline">Premium Baby Gear · Delivered to You</div>
+            </div>
+        </div>
+        <div style="width: 60px; height: 2px; background: linear-gradient(90deg, transparent, rgba(74,145,108,0.5), transparent); margin: 18px auto;"></div>
+        <div style="display: flex; justify-content: center; gap: 32px;">
+            <div style="text-align: center;">
+                <div style="font-family: 'Fraunces', serif; font-size: 1.3rem; color: #b7e4c7; font-weight: 700;">500+</div>
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px;">Happy Families</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-family: 'Fraunces', serif; font-size: 1.3rem; color: #b7e4c7; font-weight: 700;">24/7</div>
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px;">Support</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-family: 'Fraunces', serif; font-size: 1.3rem; color: #b7e4c7; font-weight: 700;">KL</div>
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px;">Based</div>
+            </div>
+        </div>
+    </div>
+</div>
 
-<div id="app">Loading...</div>
+<div id="db-status">
+    <span class="dot dot-offline" id="status-dot"></span>
+    <span id="status-text">Connecting to Cloud Database...</span>
+</div>
+
+<div class="tabs" id="navTabs">
+    <button class="tab-btn active" onclick="showTab('bookingSection', this)">🛒 Booking</button>
+    <button class="tab-btn" onclick="showTab('adminSection', this)">⚙️ Admin</button>
+</div>
+
+<div class="steps-bar" id="stepsBar">
+    <div class="steps-inner">
+        <div class="step-item active" id="step1-ind"><div class="step-num">1</div><div class="step-lbl">Details</div></div>
+        <div class="step-item" id="step2-ind"><div class="step-num">2</div><div class="step-lbl">Schedule</div></div>
+        <div class="step-item" id="step3-ind"><div class="step-num">3</div><div class="step-lbl">Extras</div></div>
+        <div class="step-item" id="step4-ind"><div class="step-num">4</div><div class="step-lbl">Confirm</div></div>
+    </div>
+</div>
+
+<div class="main">
+    <div id="bookingSection">
+        <div class="form-section active" id="sec1">
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">👤</div>
+                    <div>
+                        <div class="section-title-text">Customer Details</div>
+                        <div class="section-sub">Tell us about yourself</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="form-group">
+                        <label>Country of Origin <span class="req">*</span></label>
+                        <select id="custCountry"></select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">👶</div>
+                    <div>
+                        <div class="section-title-text">Toddler / Infant Information</div>
+                        <div class="section-sub">Details about your little one</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Age <span class="req">*</span></label>
+                            <select id="custAge">
+                                <option value="Under 1 year">Under 1 year</option>
+                                <option value="1 Year">1 Year</option>
+                                <option value="2 Years">2 Years</option>
+                                <option value="3 Years">3 Years</option>
+                                <option value="4 Years">4 Years</option>
+                                <option value="5 Years">5 Years</option>
+                                <option value="6 Years">6 Years</option>
+                                <option value="7 Years">7 Years</option>
+                                <option value="8 Years">8 Years</option>
+                                <option value="9 Years">9 Years</option>
+                                <option value="10 Years">10 Years</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Weight (kg) <span class="req">*</span></label>
+                            <select id="custWeight">
+                                <option value="0-5kg">0–5 kg</option>
+                                <option value="5-10kg">5–10 kg</option>
+                                <option value="10-15kg">10–15 kg</option>
+                                <option value="15-20kg">15–20 kg</option>
+                                <option value="20-25kg">20–25 kg</option>
+                                <option value="25-30kg">25–30 kg</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">🛒</div>
+                    <div>
+                        <div class="section-title-text">Stroller Selection</div>
+                        <div class="section-sub">Choose your preferred equipment</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="stroller-preview">
+                        <div class="stroller-image-wrap">
+                            <img id="displayImg" class="stroller-image" src="https://images.unsplash.com/photo-1519689680058-324335c77eba?w=800&q=80" alt="Stroller">
+                        </div>
+                        <div class="stroller-select-wrap">
+                            <select id="carSelect" onchange="updateUI()">
+                                <option value="">Loading equipment...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="strollerDescription" class="stroller-desc-box">Select a model to view details...</div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">💰</div>
+                    <div>
+                        <div class="section-title-text">Price Summary</div>
+                        <div class="section-sub">Estimated booking cost</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="price-summary">
+                        <div class="price-summary-head">🧾 Booking Estimate</div>
+                        <div class="price-row"><span id="mainItemLabel">Daily Rate</span><span id="rateLabel">RM 0</span></div>
+                        <div class="price-row"><span>Duration</span><span id="daysLabel" style="font-weight:700">Select Dates</span></div>
+                        <div id="extraItemsPriceList"></div>
+                        <div class="price-row"><span>Delivery Fees</span><span id="locationFeeLabel">RM 0.00</span></div>
+                        <div class="price-row" id="taxRow" style="display:none"><span>PayPal Tax (6%)</span><span id="taxLabel">RM 0.00</span></div>
+                        <div class="price-row" id="codRow" style="display:none"><span>Cash On Delivery Fee</span><span id="codLabel">RM 30.00</span></div>
+                        <div class="price-row before-deposit-row"><span>Subtotal</span><span id="subtotalLabel">RM 0.00</span></div>
+                        <div class="price-row"><span>Security Deposit <span style="font-size:0.7rem;color:var(--ink-soft)">(Refundable)</span></span><span id="depositLabel">RM 100.00</span></div>
+                        <div class="total-price-box">
+                            <div class="lbl">Grand Total</div>
+                            <div class="amt" id="totalLabel">RM 0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="goStep(2)">Continue to Schedule →</button>
+            </div>
+        </div>
+
+        <div class="form-section" id="sec2">
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">📅</div>
+                    <div>
+                        <div class="section-title-text">Rental Schedule</div>
+                        <div class="section-sub">Set your pickup and return dates</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Pickup Date <span class="req">*</span></label>
+                            <input type="date" id="pickupDate" onchange="calculate()">
+                        </div>
+                        <div class="form-group">
+                            <label>Return Date <span class="req">*</span></label>
+                            <input type="date" id="returnDate" onchange="calculate()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Pickup Location <span class="req">*</span></label>
+                        <select id="pickupLoc" onchange="calculate()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Return Location <span class="req">*</span></label>
+                        <select id="returnLoc" onchange="calculate()"></select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">💰</div>
+                    <div>
+                        <div class="section-title-text">Price Summary</div>
+                        <div class="section-sub">Estimated booking cost</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="price-summary">
+                        <div class="price-summary-head">🧾 Booking Estimate</div>
+                        <div class="price-row"><span id="mainItemLabel2">Daily Rate</span><span id="rateLabel2">RM 0</span></div>
+                        <div class="price-row"><span>Duration</span><span id="daysLabel2" style="font-weight:700">Select Dates</span></div>
+                        <div id="extraItemsPriceList2"></div>
+                        <div class="price-row"><span>Delivery Fees</span><span id="locationFeeLabel2">RM 0.00</span></div>
+                        <div class="price-row" id="taxRow2" style="display:none"><span>PayPal Tax (6%)</span><span id="taxLabel2">RM 0.00</span></div>
+                        <div class="price-row" id="codRow2" style="display:none"><span>Cash On Delivery Fee</span><span id="codLabel2">RM 30.00</span></div>
+                        <div class="price-row before-deposit-row"><span>Subtotal</span><span id="subtotalLabel2">RM 0.00</span></div>
+                        <div class="price-row"><span>Security Deposit <span style="font-size:0.7rem;color:var(--ink-soft)">(Refundable)</span></span><span id="depositLabel2">RM 100.00</span></div>
+                        <div class="total-price-box">
+                            <div class="lbl">Grand Total</div>
+                            <div class="amt" id="totalLabel2">RM 0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+                <button class="btn btn-primary" onclick="goStep(3)">Continue to Extras →</button>
+            </div>
+        </div>
+
+        <div class="form-section" id="sec3">
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">✨</div>
+                    <div>
+                        <div class="section-title-text">Add Another Item</div>
+                        <div class="section-sub">Rent multiple strollers (Max 4)</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="extra-items-container" id="extraItemsContainer">
+                        <div id="extraItemsList"></div>
+                        <button class="btn btn-review btn-sm" onclick="addExtraItemRow()" id="btnAddItem" style="margin-top:4px">+ Add Another Stroller</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">💳</div>
+                    <div>
+                        <div class="section-title-text">Payment Method</div>
+                        <div class="section-sub">Choose your preferred way to pay</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div id="paymentMethodsContainer" class="payment-methods"></div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">💰</div>
+                    <div>
+                        <div class="section-title-text">Price Summary</div>
+                        <div class="section-sub">Estimated booking cost</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="price-summary">
+                        <div class="price-summary-head">🧾 Booking Estimate</div>
+                        <div class="price-row"><span id="mainItemLabel3">Daily Rate</span><span id="rateLabel3">RM 0</span></div>
+                        <div class="price-row"><span>Duration</span><span id="daysLabel3" style="font-weight:700">Select Dates</span></div>
+                        <div id="extraItemsPriceList3"></div>
+                        <div class="price-row"><span>Delivery Fees</span><span id="locationFeeLabel3">RM 0.00</span></div>
+                        <div class="price-row" id="taxRow3" style="display:none"><span>PayPal Tax (6%)</span><span id="taxLabel3">RM 0.00</span></div>
+                        <div class="price-row" id="codRow3" style="display:none"><span>Cash On Delivery Fee</span><span id="codLabel3">RM 30.00</span></div>
+                        <div class="price-row before-deposit-row"><span>Subtotal</span><span id="subtotalLabel3">RM 0.00</span></div>
+                        <div class="price-row"><span>Security Deposit <span style="font-size:0.7rem;color:var(--ink-soft)">(Refundable)</span></span><span id="depositLabel3">RM 100.00</span></div>
+                        <div class="total-price-box">
+                            <div class="lbl">Grand Total</div>
+                            <div class="amt" id="totalLabel3">RM 0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+                <button class="btn btn-primary" onclick="goStep(4)">Review Booking →</button>
+            </div>
+        </div>
+
+        <div class="form-section" id="sec4">
+            <div class="section-card">
+                <div class="section-head">
+                    <div class="section-icon">✅</div>
+                    <div>
+                        <div class="section-title-text">Confirm Booking</div>
+                        <div class="section-sub">Review your details before submitting</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div id="reviewContent"></div>
+                </div>
+            </div>
+
+            <div class="terms-box" id="termsBox">
+                <div class="terms-check-row">
+                    <input type="checkbox" id="termsCheck" onchange="toggleButtons(); toggleTermsBoxStyle()">
+                    <label for="termsCheck" id="termsDisplay">I agree to the Terms & Conditions.</label>
+                </div>
+                <div id="bookingLinks" class="links-container"></div>
+            </div>
+
+            <div class="we-accept-section">
+                <div class="we-accept-title">We Accept</div>
+                <div class="we-accept-logos" id="acceptLogosContainer"></div>
+            </div>
+
+            <button class="btn btn-wa" id="btnWa" onclick="handleSubmit('wa')" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Book via WhatsApp
+            </button>
+            <button class="btn btn-email" id="btnEmail" onclick="handleSubmit('email')" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                Book via Email
+            </button>
+
+            <div class="btn-row">
+                <button class="btn btn-ghost" onclick="goStep(3)">← Edit Extras</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminSection" style="display:none;">
+        <div class="section-card">
+            <div class="admin-head">
+                <h2>⚙️ Admin Panel</h2>
+                <p>Manage strollers, locations & settings</p>
+            </div>
+            <div class="admin-body">
+                <div class="admin-section-title">Manage Strollers</div>
+                <div class="admin-form-box">
+                    <input type="hidden" id="editCarIdx" value="">
+                    <div class="form-group"><label>Model Name</label><input type="text" id="newCarName" placeholder="e.g. Bugaboo Bee 6"></div>
+                    <div class="form-group"><label>Description</label><textarea id="newCarDesc" placeholder="Brief details..." style="height:60px;"></textarea></div>
+                    <div class="form-group"><label>Photo URL</label><input type="text" id="newCarImg" placeholder="https://..."></div>
+                    <label style="margin-bottom:6px; color:var(--primary); font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Pricing (RM/day)</label>
+                    <div class="pricing-grid">
+                        <div><label>1 day</label><input type="number" id="p_1" placeholder="RM"></div>
+                        <div><label>1–2 days</label><input type="number" id="p_1_2" placeholder="RM"></div>
+                        <div><label>3–6 days</label><input type="number" id="p_3_6" placeholder="RM"></div>
+                        <div><label>7–13 days</label><input type="number" id="p_7_13" placeholder="RM"></div>
+                        <div><label>14–20 days</label><input type="number" id="p_14_20" placeholder="RM"></div>
+                        <div><label>21–29 days</label><input type="number" id="p_21_29" placeholder="RM"></div>
+                        <div style="grid-column:span 2"><label>30–60 days</label><input type="number" id="p_30_60" placeholder="RM"></div>
+                    </div>
+                    <button class="btn btn-save" id="btnSaveCar" onclick="saveCar()">💾 Save Stroller</button>
+                    <button class="btn btn-ghost" id="btnCancelEdit" onclick="cancelEdit()" style="display:none; margin-top:6px">✕ Cancel</button>
+                </div>
+                <div id="adminCarList"></div>
+
+                <div class="admin-section-title" style="margin-top:28px">Manage Locations</div>
+                <div class="admin-form-box">
+                    <input type="hidden" id="editLocIdx" value="">
+                    <div class="form-group"><label>Location Name</label><input type="text" id="newLocName" placeholder="e.g. KLIA Terminal 1"></div>
+                    <div class="form-group"><label>Delivery Fee (RM)</label><input type="number" id="newLocPrice" placeholder="0 = Free"></div>
+                    <button class="btn btn-save" id="btnSaveLoc" onclick="saveLoc()">💾 Save Location</button>
+                    <button class="btn btn-ghost" id="btnCancelLocEdit" onclick="cancelLocEdit()" style="display:none; margin-top:6px">✕ Cancel</button>
+                </div>
+                <div id="adminLocList"></div>
+
+                <div class="admin-section-title" style="margin-top:28px">🎨 THEME COLORS</div>
+                <div class="admin-form-box">
+                    <div class="color-picker-group">
+                        <label>Primary Color:</label>
+                        <input type="color" id="colorPrimary" value="#2d6a4f">
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Secondary Color:</label>
+                        <input type="color" id="colorSecondary" value="#40916c">
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Accent Color:</label>
+                        <input type="color" id="colorAccent" value="#d8f3dc">
+                    </div>
+                    <button class="btn btn-save" onclick="saveThemeColors()">💾 Save Theme</button>
+                </div>
+
+                <div class="admin-section-title" style="margin-top:28px">💳 PAYMENT METHODS</div>
+                <div class="admin-form-box">
+                    <label style="display:flex; align-items:center; margin-bottom:10px; font-size:0.78rem; color:var(--ink-mid); text-transform:none; letter-spacing:0;">
+                        <input type="checkbox" id="pm_qr_duitnow" style="width:18px; height:18px; margin-right:8px; margin-bottom:0;">
+                        QR DuitNow
+                    </label>
+                    <label style="display:flex; align-items:center; margin-bottom:10px; font-size:0.78rem; color:var(--ink-mid); text-transform:none; letter-spacing:0;">
+                        <input type="checkbox" id="pm_qris" style="width:18px; height:18px; margin-right:8px; margin-bottom:0;">
+                        QRIS
+                    </label>
+                    <label style="display:flex; align-items:center; margin-bottom:10px; font-size:0.78rem; color:var(--ink-mid); text-transform:none; letter-spacing:0;">
+                        <input type="checkbox" id="pm_online_transfer" style="width:18px; height:18px; margin-right:8px; margin-bottom:0;">
+                        Online Transfer
+                    </label>
+                    <label style="display:flex; align-items:center; margin-bottom:10px; font-size:0.78rem; color:var(--ink-mid); text-transform:none; letter-spacing:0;">
+                        <input type="checkbox" id="pm_paypal" style="width:18px; height:18px; margin-right:8px; margin-bottom:0;">
+                        PayPal (+6% tax)
+                    </label>
+                    <label style="display:flex; align-items:center; margin-bottom:10px; font-size:0.78rem; color:var(--ink-mid); text-transform:none; letter-spacing:0;">
+                        <input type="checkbox" id="pm_cod" style="width:18px; height:18px; margin-right:8px; margin-bottom:0;">
+                        Cash On Delivery (+RM30)
+                    </label>
+                    <button class="btn btn-save" onclick="savePaymentMethods()">💾 Save Methods</button>
+                </div>
+
+                <div class="admin-section-title" style="margin-top:28px">🔗 QR CODE / PAYMENT LINKS</div>
+                <div class="admin-form-box">
+                    <div class="form-group"><label>QR DuitNow Image URL</label><input type="text" id="qr_duitnow_url" placeholder="https://..."></div>
+                    <div class="form-group"><label>QRIS Image URL</label><input type="text" id="qr_qris_url" placeholder="https://..."></div>
+                    <div class="form-group"><label>Online Transfer Info/QR</label><input type="text" id="qr_transfer_url" placeholder="https://..."></div>
+                    <button class="btn btn-save" onclick="saveQRCodes()">💾 Save QR Codes</button>
+                </div>
+
+                <div class="admin-section-title" style="margin-top:28px">💳 ACCEPTED PAYMENT LOGOS</div>
+                <div class="admin-form-box">
+                    <div class="form-group"><label>Visa Logo URL</label><input type="text" id="logo_visa" placeholder="https://..."></div>
+                    <div class="form-group"><label>Mastercard Logo URL</label><input type="text" id="logo_mastercard" placeholder="https://..."></div>
+                    <div class="form-group"><label>Wise Logo URL</label><input type="text" id="logo_wise" placeholder="https://..."></div>
+                    <div class="form-group"><label>PayPal Logo URL</label><input type="text" id="logo_paypal" placeholder="https://..."></div>
+                    <div class="form-group"><label>QRIS Logo URL</label><input type="text" id="logo_qris" placeholder="https://..."></div>
+                    <div class="form-group"><label>QR DuitNow Logo URL</label><input type="text" id="logo_duitnow" placeholder="https://..."></div>
+                    <div class="form-group"><label>Alipay Logo URL</label><input type="text" id="logo_alipay" placeholder="https://..."></div>
+                    <div class="form-group"><label>FPX Logo URL</label><input type="text" id="logo_fpx" placeholder="https://..."></div>
+                    <div class="form-group"><label>American Express Logo URL</label><input type="text" id="logo_amex" placeholder="https://..."></div>
+                    <button class="btn btn-save" onclick="saveAcceptedLogos()">💾 Save Logos</button>
+                </div>
+
+                <div class="admin-section-title" style="margin-top:28px">📸 PHOTO GALLERY (8 IMAGES)</div>
+                <div class="admin-form-box">
+                    <div class="form-group"><label>Gallery Image 1 URL</label><input type="text" id="gallery_1" placeholder="https://..."></div>
+                    <div class="form-group"><label>Gallery Image 2 URL</label><input type="text" id="gallery_2" placeholder="https://..."></div>
+                    <div class="form-group"><label>Gallery Image 3 URL</label><input type="text" id="gallery_3" placeholder="https://..."></div>
+                    <div class="form-group"><label>Gallery Image 4 URL</label><input type="text" id="gallery_4" placeholder="https://..."></div>
+                    <div class="form-group"><label>Gallery Image 5 URL</label><input type="text" id="gallery_5" placeholder="https://..."></div>
+                    <div class="form-group"><label>Gallery Image 6 URL</label><input type="text" id="gallery_6" placeholder="https://..."></div>
+                    <div class="form-group"><label>Gallery Image 7 URL</label><input type="text" id="gallery_7" placeholder="https://..."></div>
+                    <div class="form-group"><label>Gallery Image 8 URL</label><input type="text" id="gallery_8" placeholder="https://..."></div>
+                    <button class="btn btn-save" onclick="saveGallery()">💾 Save Gallery</button>
+                </div>
+
+                <div class="admin-section-title" style="margin-top:28px">⚙️ General Settings</div>
+                <div class="form-group"><label>WhatsApp Number</label><input type="text" id="confPhone"></div>
+                <div class="form-group"><label>Admin Email</label><input type="email" id="confEmail"></div>
+                <div class="form-group"><label>Terms & Conditions Text</label><input type="text" id="confTermsText"></div>
+                <div class="form-group"><label>Terms & Conditions Link URL</label><input type="text" id="confTermsLink" placeholder="https://..."></div>
+                <button class="btn btn-save" onclick="saveSettings()">💾 Update Settings</button>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="trust-strip">
+    <div class="trust-item"><div class="trust-icon">🛡️</div><div class="trust-lbl">Safe & Clean</div></div>
+    <div class="trust-item"><div class="trust-icon">🚚</div><div class="trust-lbl">Delivery Available</div></div>
+    <div class="trust-item"><div class="trust-icon">💚</div><div class="trust-lbl">Eco Friendly</div></div>
+    <div class="trust-item"><div class="trust-icon">⭐</div><div class="trust-lbl">5-Star Rated</div></div>
+</div>
+
+<div class="main">
+    <div class="gallery-section">
+        <div class="gallery-title">📸 Gallery</div>
+        <div class="gallery-grid" id="galleryContainer"></div>
+    </div>
+</div>
+
+<div class="bottom-actions">
+    <a href="https://eztransportrental.com.my/car-seat-and-stroller/" class="btn-bottom btn-back">← Back to Main Menu</a>
+    <a href="https://wa.me/60182246616?text=Hi%2C%20I%20need%20help%20with%20stroller%20rental." target="_blank" class="btn-bottom btn-help">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Need Help?
+    </a>
+</div>
+
+<div class="company-footer">
+    <div class="company-footer-top">
+        <div class="cf-brand">
+            <div class="cf-logo-row">
+                <div class="cf-icon" id="cfLogoWrap">🛒</div>
+                <div>
+                    <div class="cf-logo-name" id="cfSiteName">EZ Stroller <em>Rental</em></div>
+                </div>
+            </div>
+            <div class="cf-tagline" id="cfTagline">Premium baby gear rental services across Malaysia & Beyond.</div>
+        </div>
+        <div>
+            <div class="cf-section-title">About Us</div>
+            <div class="cf-about-text" id="cfAboutText">
+                <strong>ezstrollerrental.com.my</strong> is Wholly Owned by <strong>Ikhlas Nineteen Resources (001561921K)</strong>.<br><br>
+                We provide professional, reliable and comfortable baby gear rental services for families throughout Malaysia.
+            </div>
+        </div>
+        <div>
+            <div class="cf-section-title">Contact Us</div>
+            <div class="cf-contact-item">
+                <div class="cf-contact-icon">📞</div>
+                <div class="cf-contact-text" id="cfPhone"><a href="tel:+60390782003">+60 3-9078 2003</a></div>
+            </div>
+            <div class="cf-contact-item">
+                <div class="cf-contact-icon">✉️</div>
+                <div class="cf-contact-text" id="cfEmail"><a href="mailto:customer.care@ezstrollerrental.com.my">customer.care@ezstrollerrental.com.my</a></div>
+            </div>
+            <div class="cf-contact-item">
+                <div class="cf-contact-icon">📍</div>
+                <div class="cf-contact-text" id="cfAddress">PW23-1 ONE MON'T KIARA,<br>No. 1 Jalan Kiara,<br>50480 Kuala Lumpur.</div>
+            </div>
+            <div class="cf-contact-item">
+                <div class="cf-contact-icon">🌐</div>
+                <div class="cf-contact-text" id="cfWebsite"><a href="https://ezstrollerrental.com.my" target="_blank">ezstrollerrental.com.my</a></div>
+            </div>
+        </div>
+    </div>
+    <div style="max-width:680px;margin:0 auto;">
+        <div class="company-footer-bottom">
+            <div class="cf-copy" id="cfCopyright">© 2025 <a href="https://ezstrollerrental.com.my" target="_blank">EZStrollerRental.com.my</a> · Ikhlas Nineteen Resources (001561921K)</div>
+            <div class="cf-copy">All Rights Reserved</div>
+        </div>
+    </div>
+</div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAcqwzRnvHN4hjM9PX-PTe5o616LVMC3JM",
-        authDomain: "stroller-system.firebaseapp.com",
-        databaseURL: "https://stroller-system-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "stroller-system",
-        storageBucket: "stroller-system.firebasestorage.app",
-        messagingSenderId: "202491162301",
-        appId: "1:202491162301:web:63f879b38694314978d1d4",
-        measurementId: "G-R7E0BK1055"
-    };
+const firebaseConfig = {
+    apiKey: "AIzaSyAcqwzRnvHN4hjM9PX-PTe5o616LVMC3JM",
+    authDomain: "stroller-system.firebaseapp.com",
+    databaseURL: "https://stroller-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "stroller-system",
+    storageBucket: "stroller-system.firebasestorage.app",
+    messagingSenderId: "202491162301",
+    appId: "1:202491162301:web:63f879b38694314978d1d4",
+    measurementId: "G-R7E0BK1055"
+};
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    // ✅ FEATURES YANG SUDAH DITAMBAH:
-    // 1. ✅ Stroller image - RESIZE SEMPURNA (object-fit: cover)
-    // 2. ✅ Payment methods - QR DuitNow, QRIS, Online Transfer, PayPal, COD
-    // 3. ✅ Agree box - Dark theme saat selected (#1b2d24)
-    // 4. ✅ We Accept section - 9 logo payment dalam grid
-    // 5. ✅ Date format - DD/MM/YYYY
-    // 6. ✅ Photo gallery - 8 box responsive (mobile friendly)
-    // 7. ✅ Theme colors - Editable via admin panel (color picker)
-    // 8. ✅ Semua editable di admin panel
+const ADMIN_PASS = "123iin456";
+const DEPOSIT_PER_ITEM = 100;
+const MAX_DEPOSIT = 500;
+const MIN_DAYS = 1;
 
-    function formatDateToDDMMYYYY(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString + 'T00:00:00');
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
+const allCountries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Côte d'Ivoire","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo (Congo-Brazzaville)","Costa Rica","Croatia","Cuba","Cyprus","Czechia","Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Holy See","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine State","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
+
+const paymentMethodsConfig = {
+    qr_duitnow: { icon: '🇲🇾', name: 'QR DuitNow', desc: 'Malaysian instant transfer' },
+    qris: { icon: '🇮🇩', name: 'QRIS', desc: 'Indonesian QR payment' },
+    online_transfer: { icon: '🏦', name: 'Online Transfer', desc: 'Bank transfer' },
+    paypal: { icon: '🌐', name: 'PayPal', desc: '+6% tax' },
+    cod: { icon: '🚗', name: 'Cash On Delivery', desc: '+RM30 fee' }
+};
+
+let inventory = {};
+let locations = {};
+let settings = {};
+let currentTotals = { days: 0, finalDailyRate: 0, rentalCost: 0, extraRentalCost: 0, locFee: 0, subtotal: 0, deposit: 100, grand: 0, extraItems: [], payMethod: 'qr_duitnow' };
+let currentStep = 1;
+let adminClicks = 0;
+
+function formatDateToDDMMYYYY(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString + 'T00:00:00');
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+function calculateDeposit() {
+    const extraCount = document.querySelectorAll(".extra-item-select").length;
+    const payMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'qr_duitnow';
+    const depositPerItem = payMethod === 'cod' ? 300 : DEPOSIT_PER_ITEM;
+    const maxDeposit = payMethod === 'cod' ? 1500 : MAX_DEPOSIT;
+    return Math.min((1 + extraCount) * depositPerItem, maxDeposit);
+}
+
+function applyDynamicColors() {
+    if (settings.colors) {
+        document.documentElement.style.setProperty('--primary', settings.colors.primary || '#2d6a4f');
+        document.documentElement.style.setProperty('--primary-light', settings.colors.secondary || '#40916c');
+        document.documentElement.style.setProperty('--primary-pale', settings.colors.accent || '#d8f3dc');
+    }
+}
+
+function initApp() {
+    const cs = document.getElementById('custCountry');
+    cs.innerHTML = allCountries.map(c => `<option value="${c}" ${c==='Malaysia'?'selected':''}>${c}</option>`).join('');
+    attachFirebaseListeners();
+}
+
+function attachFirebaseListeners() {
+    db.ref('ez_stroller_settings').once('value', snap => {
+        settings = snap.val() || { 
+            termsText: "I agree to the Stroller Rental Terms & Conditions.", 
+            termsLink: "", 
+            adminEmail: "customer.care@ezstrollerrental.com.my", 
+            adminPhone: "60182246616",
+            colors: { primary: '#2d6a4f', secondary: '#40916c', accent: '#d8f3dc' },
+            paymentMethods: { qr_duitnow: true, qris: true, online_transfer: true, paypal: true, cod: true }
+        };
+        applyDynamicColors();
+        applySettings();
+        renderPaymentMethods();
+        renderAcceptLogos();
+    });
+    db.ref('ez_stroller_settings').on('value', snap => { 
+        settings = snap.val() || settings; 
+        applyDynamicColors();
+        applySettings(); 
+        renderPaymentMethods();
+        renderAcceptLogos();
+    });
+
+    db.ref('ez_stroller_inventory').once('value', snap => {
+        inventory = snap.val() || {};
+        renderCarOptions(); renderAdminCars(); updateUI();
+    });
+    db.ref('ez_stroller_inventory').on('value', snap => { inventory = snap.val() || {}; renderCarOptions(); renderAdminCars(); updateUI(); });
+
+    db.ref('ez_stroller_locations').once('value', snap => {
+        locations = snap.val() || {};
+        renderLocOptions(); renderAdminLocs(); calculate();
+    });
+    db.ref('ez_stroller_locations').on('value', snap => { locations = snap.val() || {}; renderLocOptions(); renderAdminLocs(); calculate(); });
+
+    db.ref('ez_stroller_gallery').once('value', snap => {
+        const gallery = snap.val() || {};
+        renderGallery(gallery);
+    });
+    db.ref('ez_stroller_gallery').on('value', snap => { renderGallery(snap.val() || {}); });
+
+    db.ref(".info/connected").on("value", snap => {
+        const dot = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+        if (snap.val() === true) { dot.className = "dot dot-online"; text.innerText = "Cloud Synced ✓"; }
+        else { dot.className = "dot dot-offline"; text.innerText = "Offline - Connecting..."; }
+    });
+}
+
+function applySettings() {
+    document.getElementById('confPhone').value = settings.adminPhone || "";
+    document.getElementById('confEmail').value = settings.adminEmail || "";
+    document.getElementById('confTermsText').value = settings.termsText || "";
+    document.getElementById('confTermsLink').value = settings.termsLink || "";
+    document.getElementById('termsDisplay').innerText = settings.termsText || "I agree to the Stroller Rental Terms & Conditions.";
+    document.getElementById('bookingLinks').innerHTML = settings.termsLink
+        ? `<a href="${settings.termsLink}" target="_blank" class="terms-link-item">📄 Read Terms & Conditions</a>` : "";
+    
+    if (settings.colors) {
+        document.getElementById('colorPrimary').value = settings.colors.primary || '#2d6a4f';
+        document.getElementById('colorSecondary').value = settings.colors.secondary || '#40916c';
+        document.getElementById('colorAccent').value = settings.colors.accent || '#d8f3dc';
+    }
+    
+    if (settings.paymentMethods) {
+        document.getElementById('pm_qr_duitnow').checked = settings.paymentMethods.qr_duitnow !== false;
+        document.getElementById('pm_qris').checked = settings.paymentMethods.qris !== false;
+        document.getElementById('pm_online_transfer').checked = settings.paymentMethods.online_transfer !== false;
+        document.getElementById('pm_paypal').checked = settings.paymentMethods.paypal !== false;
+        document.getElementById('pm_cod').checked = settings.paymentMethods.cod !== false;
     }
 
-    // Initialize app
-    document.getElementById('app').innerHTML = `
-        <div style="padding: 20px; text-align: center;">
-            <h1>✅ EZ Stroller Rental - FULLY UPDATED</h1>
-            <p style="margin-top: 20px; font-size: 18px; line-height: 1.8;">
-                <strong>✨ Semua features sudah ditambah:</strong><br><br>
-                ✅ Stroller gambar resize sempurna (object-fit: cover)<br>
-                ✅ Payment Methods: QR DuitNow, QRIS, Online Transfer, PayPal, COD<br>
-                ✅ Agree Box dark theme (#1b2d24) bila selected<br>
-                ✅ We Accept section - 9 logo dalam grid<br>
-                ✅ Date format DD/MM/YYYY di summary confirm<br>
-                ✅ Photo gallery 8 box mobile-friendly di bawah menu<br>
-                ✅ Theme colors fully editable di admin panel<br>
-                ✅ Semua bisa di-edit via admin panel<br><br>
+    if (settings.qrCodes) {
+        document.getElementById('qr_duitnow_url').value = settings.qrCodes.qr_duitnow || "";
+        document.getElementById('qr_qris_url').value = settings.qrCodes.qris || "";
+        document.getElementById('qr_transfer_url').value = settings.qrCodes.online_transfer || "";
+    }
 
-                <strong style="color: #2d6a4f;">File HTML lengkap sudah disimpan di /mnt/user-data/outputs/</strong><br>
-                Nama file: <code style="background: #f0f7f2; padding: 10px; border-radius: 5px;">ez_stroller_updated_LENGKAP.html</code>
-            </p>
-        </div>
-    `;
+    if (settings.acceptLogos) {
+        document.getElementById('logo_visa').value = settings.acceptLogos.visa || "";
+        document.getElementById('logo_mastercard').value = settings.acceptLogos.mastercard || "";
+        document.getElementById('logo_wise').value = settings.acceptLogos.wise || "";
+        document.getElementById('logo_paypal').value = settings.acceptLogos.paypal || "";
+        document.getElementById('logo_qris').value = settings.acceptLogos.qris || "";
+        document.getElementById('logo_duitnow').value = settings.acceptLogos.duitnow || "";
+        document.getElementById('logo_alipay').value = settings.acceptLogos.alipay || "";
+        document.getElementById('logo_fpx').value = settings.acceptLogos.fpx || "";
+        document.getElementById('logo_amex').value = settings.acceptLogos.amex || "";
+    }
 
-    console.log('✅ EZ Stroller Rental - UPDATED dengan semua features!');
-    console.log('Features yang ditambah:');
-    console.log('1. Stroller image resize - object-fit: cover');
-    console.log('2. Payment methods - 5 pilihan (QR DuitNow, QRIS, Transfer, PayPal, COD)');
-    console.log('3. Agree box - Dark theme saat selected');
-    console.log('4. We Accept logos - 9 payment method logos dalam grid');
-    console.log('5. Date format - DD/MM/YYYY');
-    console.log('6. Photo gallery - 8 box responsive');
-    console.log('7. Theme colors - Editable via admin');
-    console.log('8. Semua fully editable di admin panel');
+    if (settings.gallery) {
+        for (let i = 1; i <= 8; i++) {
+            const id = `gallery_${i}`;
+            const el = document.getElementById(id);
+            if (el) el.value = settings.gallery[`image_${i}`] || "";
+        }
+    }
+}
+
+function renderPaymentMethods() {
+    const container = document.getElementById('paymentMethodsContainer');
+    const enabled = settings.paymentMethods || {};
+    
+    let html = '';
+    for (const [key, config] of Object.entries(paymentMethodsConfig)) {
+        if (enabled[key] !== false) {
+            html += `
+                <label class="payment-option">
+                    <input type="radio" name="paymentMethod" value="${key}" onchange="calculate()" ${key === 'qr_duitnow' ? 'checked' : ''}>
+                    <span class="payment-label">
+                        <span class="payment-name">${config.icon} ${config.name}</span>
+                        <span class="payment-desc">${config.desc}</span>
+                    </span>
+                </label>`;
+        }
+    }
+    container.innerHTML = html;
+}
+
+function renderAcceptLogos() {
+    const container = document.getElementById('acceptLogosContainer');
+    const logos = settings.acceptLogos || {};
+    const logoKeys = ['visa', 'mastercard', 'wise', 'paypal', 'qris', 'duitnow', 'alipay', 'fpx', 'amex'];
+    
+    let html = '';
+    logoKeys.forEach(key => {
+        if (logos[key]) {
+            html += `<div class="logo-item"><img src="${logos[key]}" alt="${key}" style="max-width:100%; max-height:40px; object-fit:contain;"></div>`;
+        }
+    });
+    
+    container.innerHTML = html || '<p style="grid-column:span 4; text-align:center; font-size:0.78rem; color:var(--ink-soft);">No logos configured yet</p>';
+}
+
+function renderGallery(gallery) {
+    const container = document.getElementById('galleryContainer');
+    let html = '';
+    for (let i = 1; i <= 8; i++) {
+        const imgUrl = gallery[`image_${i}`];
+        if (imgUrl) {
+            html += `<div class="gallery-item"><img src="${imgUrl}" alt="Gallery ${i}" style="display:block;"></div>`;
+        } else {
+            html += `<div class="gallery-item empty">📷</div>`;
+        }
+    }
+    container.innerHTML = html;
+}
+
+function renderCarOptions() {
+    const selects = [document.getElementById('carSelect'), ...document.querySelectorAll('.extra-item-select')];
+    const html = Object.keys(inventory).map(id => `<option value="${id}">${inventory[id].name}</option>`).join('') || '<option value="">No equipment available</option>';
+    selects.forEach(s => { if (s) s.innerHTML = html; });
+}
+
+function renderLocOptions() {
+    const html = Object.keys(locations).map(id => `<option value="${id}">${locations[id].name}${locations[id].price > 0 ? ' (RM '+locations[id].price+')' : ''}</option>`).join('');
+    document.getElementById('pickupLoc').innerHTML = html;
+    document.getElementById('returnLoc').innerHTML = html;
+}
+
+function renderAdminCars() {
+    document.getElementById('adminCarList').innerHTML = Object.keys(inventory).map(id => `
+        <div class="admin-item" style="flex-direction:column;align-items:stretch;">
+            <div class="admin-item-info"><strong>${inventory[id].name}</strong></div>
+            <div style="display:flex;gap:5px;margin-top:6px;">
+                <button class="btn btn-edit btn-sm" onclick="editItem('${id}')" style="flex:1">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteItem('ez_stroller_inventory/${id}')">✕</button>
+            </div>
+        </div>`).join('');
+}
+
+function renderAdminLocs() {
+    const list = document.getElementById('adminLocList');
+    if (!list) return;
+    const keys = Object.keys(locations);
+    if (!keys.length) { list.innerHTML = '<p style="font-size:0.78rem;color:var(--ink-soft);text-align:center;padding:10px">No locations added yet.</p>'; return; }
+    list.innerHTML = keys.map(id => `
+        <div class="admin-item" style="flex-direction:column;align-items:stretch;">
+            <div class="admin-item-info">
+                <strong>${locations[id].name}</strong>
+                <span>${locations[id].price > 0 ? 'RM '+parseFloat(locations[id].price).toFixed(2) : 'Free'}</span>
+            </div>
+            <div style="display:flex;gap:5px;margin-top:6px;">
+                <button class="btn btn-edit btn-sm" onclick="editLoc('${id}')" style="flex:1">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteItem('ez_stroller_locations/${id}')">✕</button>
+            </div>
+        </div>`).join('');
+}
+
+function addExtraItemRow() {
+    const list = document.getElementById('extraItemsList');
+    if (list.children.length >= 4) return;
+    const div = document.createElement('div');
+    div.className = 'extra-item-entry';
+    div.innerHTML = `
+        <select class="extra-item-select" onchange="calculate()">
+            ${Object.keys(inventory).map(id => `<option value="${id}">${inventory[id].name}</option>`).join('')}
+        </select>
+        <button class="btn btn-danger btn-sm" onclick="removeExtraItem(this)">✕</button>`;
+    list.appendChild(div);
+    calculate();
+    if (list.children.length >= 4) document.getElementById('btnAddItem').style.display = 'none';
+}
+
+function removeExtraItem(btn) {
+    btn.parentElement.remove();
+    document.getElementById('btnAddItem').style.display = 'flex';
+    calculate();
+}
+
+function getRate(car, days) {
+    const p = car.prices || {};
+    if (days === 1) return p.p_1 || 0;
+    if (days === 2) return p.p_1_2 || 0;
+    if (days >= 3 && days <= 6) return p.p_3_6 || 0;
+    if (days >= 7 && days <= 13) return p.p_7_13 || 0;
+    if (days >= 14 && days <= 20) return p.p_14_20 || 0;
+    if (days >= 21 && days <= 29) return p.p_21_29 || 0;
+    if (days >= 30) return p.p_30_60 || 0;
+    return 0;
+}
+
+function calculate() {
+    const carId = document.getElementById('carSelect').value;
+    if (!inventory[carId]) return;
+    const mainCar = inventory[carId];
+    const d1 = document.getElementById('pickupDate').value;
+    const d2 = document.getElementById('returnDate').value;
+    const pLocId = document.getElementById('pickupLoc').value;
+    const rLocId = document.getElementById('returnLoc').value;
+    const locFees = (locations[pLocId]?.price || 0) + (locations[rLocId]?.price || 0);
+
+    const deposit = calculateDeposit();
+    ['depositLabel', 'depositLabel2', 'depositLabel3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = `RM ${deposit.toFixed(2)}`;
+    });
+
+    if (d1 && d2) {
+        const days = Math.floor((new Date(d2) - new Date(d1)) / 86400000) + 1;
+
+        if (days < MIN_DAYS) {
+            ['daysLabel', 'daysLabel2', 'daysLabel3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = `Min. ${MIN_DAYS} Day Required`;
+            });
+            return;
+        }
+
+        const mainRate = getRate(mainCar, days);
+        const mainRentalCost = days * mainRate;
+        let extraRentalTotal = 0, extraItemsData = [], extraHtml = "";
+
+        document.querySelectorAll('.extra-item-select').forEach(sel => {
+            const item = inventory[sel.value];
+            if (item) {
+                const rate = getRate(item, days), cost = days * rate;
+                extraRentalTotal += cost;
+                extraItemsData.push({ name: item.name, rate, cost });
+                extraHtml += `<div class="price-row extra-item-row"><span>+ ${item.name}</span><span>RM ${cost.toFixed(2)}</span></div>`;
+            }
+        });
+
+        const payMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'qr_duitnow';
+        const baseSubtotal = mainRentalCost + extraRentalTotal + locFees;
+        const taxAmt = payMethod === 'paypal' ? baseSubtotal * 0.06 : 0;
+        const codFee = payMethod === 'cod' ? 30 : 0;
+        const subtotal = baseSubtotal + taxAmt + codFee;
+        const grand = subtotal + deposit;
+        currentTotals = { days, finalDailyRate: mainRate, rentalCost: mainRentalCost, extraRentalCost: extraRentalTotal, locFee: locFees, taxAmt, codFee, subtotal, deposit, grand, extraItems: extraItemsData, payMethod };
+
+        ['rateLabel', 'mainItemLabel', 'daysLabel', 'locationFeeLabel', 'taxLabel', 'taxRow', 'codLabel', 'codRow', 'subtotalLabel', 'totalLabel'].forEach(id => {
+            ['', '2', '3'].forEach(suffix => {
+                const elId = id + suffix;
+                const el = document.getElementById(elId);
+                if (!el) return;
+                if (elId === 'mainItemLabel' || elId === 'mainItemLabel2' || elId === 'mainItemLabel3')
+                    el.innerText = `${mainCar.name} (Daily Rate)`;
+                else if (elId === 'rateLabel' || elId === 'rateLabel2' || elId === 'rateLabel3')
+                    el.innerText = `RM ${mainRate}/day`;
+                else if (elId === 'daysLabel' || elId === 'daysLabel2' || elId === 'daysLabel3')
+                    el.innerText = `${days} Day(s)`;
+                else if (elId === 'locationFeeLabel' || elId === 'locationFeeLabel2' || elId === 'locationFeeLabel3')
+                    el.innerText = `RM ${locFees.toFixed(2)}`;
+                else if (elId === 'taxLabel' || elId === 'taxLabel2' || elId === 'taxLabel3')
+                    el.innerText = `RM ${taxAmt.toFixed(2)}`;
+                else if (elId === 'codLabel' || elId === 'codLabel2' || elId === 'codLabel3')
+                    el.innerText = `RM 30.00`;
+                else if (elId === 'subtotalLabel' || elId === 'subtotalLabel2' || elId === 'subtotalLabel3')
+                    el.innerText = `RM ${subtotal.toFixed(2)}`;
+                else if (elId === 'totalLabel' || elId === 'totalLabel2' || elId === 'totalLabel3')
+                    el.innerText = `RM ${grand.toFixed(2)}`;
+            });
+        });
+
+        ['extraItemsPriceList', 'extraItemsPriceList2', 'extraItemsPriceList3'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = extraHtml;
+        });
+
+        ['taxRow', 'taxRow2', 'taxRow3'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = payMethod === 'paypal' ? 'flex' : 'none';
+        });
+
+        ['codRow', 'codRow2', 'codRow3'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = payMethod === 'cod' ? 'flex' : 'none';
+        });
+    }
+    toggleButtons();
+}
+
+function updateUI() {
+    const carId = document.getElementById('carSelect').value;
+    if (inventory[carId]) {
+        document.getElementById('displayImg').src = inventory[carId].img || "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=800&q=80";
+        document.getElementById('strollerDescription').innerText = inventory[carId].desc || "No description available.";
+    }
+    calculate();
+}
+
+function toggleButtons() {
+    const ok = document.getElementById('termsCheck').checked && currentTotals.grand > 0;
+    document.getElementById('btnWa').disabled = !ok;
+    document.getElementById('btnEmail').disabled = !ok;
+}
+
+function toggleTermsBoxStyle() {
+    const termsBox = document.getElementById('termsBox');
+    const isChecked = document.getElementById('termsCheck').checked;
+    if (isChecked) {
+        termsBox.classList.add('agreed');
+    } else {
+        termsBox.classList.remove('agreed');
+    }
+}
+
+function goStep(n) {
+    if (n > 1) {
+        if (!document.getElementById('custCountry').value) return;
+        if (!document.getElementById('custAge').value) return;
+        if (!document.getElementById('custWeight').value) return;
+        if (!document.getElementById('carSelect').value) return;
+    }
+    if (n > 2) {
+        if (!document.getElementById('pickupDate').value) return;
+        if (!document.getElementById('returnDate').value) return;
+        if (currentTotals.days < MIN_DAYS) return;
+    }
+    if (n > 3) { renderReview(); }
+
+    currentStep = n;
+    document.querySelectorAll('.form-section').forEach((s, i) => s.classList.toggle('active', i + 1 === n));
+    document.querySelectorAll('.step-item').forEach((s, i) => {
+        s.classList.remove('active', 'done');
+        if (i + 1 < n) s.classList.add('done');
+        if (i + 1 === n) s.classList.add('active');
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderReview() {
+    const car = inventory[document.getElementById('carSelect').value];
+    const country = document.getElementById('custCountry').value;
+    const age = document.getElementById('custAge').value;
+    const weight = document.getElementById('custWeight').value;
+    const pickupL = locations[document.getElementById('pickupLoc').value]?.name || '-';
+    const returnL = locations[document.getElementById('returnLoc').value]?.name || '-';
+    const pickupDateFormatted = formatDateToDDMMYYYY(document.getElementById('pickupDate').value);
+    const returnDateFormatted = formatDateToDDMMYYYY(document.getElementById('returnDate').value);
+
+    const extraReview = currentTotals.extraItems.map(i => `<div class="review-row"><span>+ ${i.name}</span><span>RM ${i.cost.toFixed(2)}</span></div>`).join('');
+    const payMethodConfig = paymentMethodsConfig[currentTotals.payMethod] || paymentMethodsConfig.qr_duitnow;
+    const payLabel = `${payMethodConfig.icon} ${payMethodConfig.name}`;
+
+    document.getElementById('reviewContent').innerHTML = `
+        <div class="review-row"><span>Country</span><span>${country}</span></div>
+        <div class="review-row"><span>Toddler</span><span>${age} · ${weight}</span></div>
+        <div class="review-row"><span>Main Stroller</span><span>${car?.name || '-'}</span></div>
+        <div class="review-row"><span>Pickup Date</span><span>${pickupDateFormatted}</span></div>
+        <div class="review-row"><span>Return Date</span><span>${returnDateFormatted}</span></div>
+        <div class="review-row"><span>Duration</span><span>${currentTotals.days} Days @ RM ${currentTotals.finalDailyRate}/day</span></div>
+        <div class="review-row"><span>Pickup Location</span><span>${pickupL}</span></div>
+        <div class="review-row"><span>Return Location</span><span>${returnL}</span></div>
+        ${extraReview}
+        <div class="review-row"><span>Delivery Fees</span><span>RM ${currentTotals.locFee.toFixed(2)}</span></div>
+        <div class="review-row"><span>Payment Method</span><span>${payLabel}</span></div>
+        ${currentTotals.payMethod==='paypal'?`<div class="review-row"><span>PayPal Tax (6%)</span><span>RM ${currentTotals.taxAmt.toFixed(2)}</span></div>`:''}
+        ${currentTotals.payMethod==='cod'?`<div class="review-row"><span>COD Fee</span><span>RM 30.00</span></div>`:''}
+        <div class="review-row"><span>Subtotal</span><span>RM ${currentTotals.subtotal.toFixed(2)}</span></div>
+        <div class="review-row"><span>Security Deposit</span><span>RM ${currentTotals.deposit.toFixed(2)}</span></div>
+        <div class="review-row" style="border-top:2px solid var(--primary);margin-top:8px;padding-top:12px">
+            <span style="color:var(--primary);font-weight:800;font-size:0.9rem">GRAND TOTAL</span>
+            <span style="color:var(--primary);font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700">RM ${currentTotals.grand.toFixed(2)}</span>
+        </div>`;
+
+    document.getElementById('termsCheck').checked = false;
+    document.getElementById('termsBox').classList.remove('agreed');
+    toggleButtons();
+}
+
+function handleSubmit(method) {
+    const car = inventory[document.getElementById('carSelect').value];
+    const pLoc = locations[document.getElementById('pickupLoc').value]?.name || "-";
+    const rLoc = locations[document.getElementById('returnLoc').value]?.name || "-";
+    const pickupDateFormatted = formatDateToDDMMYYYY(document.getElementById('pickupDate').value);
+    const returnDateFormatted = formatDateToDDMMYYYY(document.getElementById('returnDate').value);
+    
+    let msg = `*EZ STROLLER BOOKING*\n----------------------------\n`;
+    msg += `🌍 Country: ${document.getElementById('custCountry').value}\n`;
+    msg += `👶 Age/Weight: ${document.getElementById('custAge').value} / ${document.getElementById('custWeight').value}\n\n`;
+    msg += `🛒 *ITEM(S) SELECTED:*\n• 1x ${car.name} (Main)\n`;
+    currentTotals.extraItems.forEach(i => { msg += `• 1x ${i.name}\n`; });
+    msg += `\n📅 *RENTAL PERIOD:*\n⏱️ Duration: ${currentTotals.days} Day(s)\n`;
+    msg += `🛫 Pickup: ${pickupDateFormatted}\n📍 Loc: ${pLoc}\n`;
+    msg += `🛬 Return: ${returnDateFormatted}\n📍 Loc: ${rLoc}\n\n`;
+    const payMethodConfig = paymentMethodsConfig[currentTotals.payMethod] || paymentMethodsConfig.qr_duitnow;
+    msg += `💳 *PAYMENT METHOD:* ${payMethodConfig.icon} ${payMethodConfig.name}\n\n`;
+    msg += `💰 *PRICE SUMMARY:*\n- Daily Rate: RM ${currentTotals.finalDailyRate}/day\n`;
+    msg += `- Delivery Fees: RM ${currentTotals.locFee.toFixed(2)}\n`;
+    if (currentTotals.payMethod === 'paypal') msg += `- PayPal Tax (6%): RM ${currentTotals.taxAmt.toFixed(2)}\n`;
+    if (currentTotals.payMethod === 'cod') msg += `- Cash On Delivery Fee: RM 30.00\n`;
+    msg += `- Subtotal: RM ${currentTotals.subtotal.toFixed(2)}\n`;
+    msg += `- Security Deposit: RM ${currentTotals.deposit.toFixed(2)}\n`;
+    msg += `----------------------------\n✨ *GRAND TOTAL: RM ${currentTotals.grand.toFixed(2)}*\n----------------------------`;
+    if (method === 'wa') window.open(`https://wa.me/${settings.adminPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    else window.location.href = `mailto:${settings.adminEmail}?subject=Stroller Booking Request&body=${encodeURIComponent(msg)}`;
+}
+
+function saveCar() {
+    const editId = document.getElementById('editCarIdx').value || Date.now();
+    const data = {
+        name: document.getElementById('newCarName').value,
+        desc: document.getElementById('newCarDesc').value,
+        img: document.getElementById('newCarImg').value,
+        prices: { p_1: +document.getElementById('p_1').value||0, p_1_2: +document.getElementById('p_1_2').value||0, p_3_6: +document.getElementById('p_3_6').value||0, p_7_13: +document.getElementById('p_7_13').value||0, p_14_20: +document.getElementById('p_14_20').value||0, p_21_29: +document.getElementById('p_21_29').value||0, p_30_60: +document.getElementById('p_30_60').value||0 }
+    };
+    if (data.name) db.ref('ez_stroller_inventory/' + editId).set(data).then(cancelEdit);
+}
+
+function editItem(id) {
+    const item = inventory[id];
+    document.getElementById('editCarIdx').value = id;
+    document.getElementById('newCarName').value = item.name;
+    document.getElementById('newCarDesc').value = item.desc || "";
+    document.getElementById('newCarImg').value = item.img || "";
+    const p = item.prices || {};
+    ['p_1','p_1_2','p_3_6','p_7_13','p_14_20','p_21_29','p_30_60'].forEach(k => document.getElementById(k).value = p[k] || "");
+    document.getElementById('btnSaveCar').innerText = "✏️ Update Stroller";
+    document.getElementById('btnCancelEdit').style.display = "block";
+}
+
+function cancelEdit() {
+    document.getElementById('editCarIdx').value = "";
+    ['newCarName','newCarDesc','newCarImg','p_1','p_1_2','p_3_6','p_7_13','p_14_20','p_21_29','p_30_60'].forEach(k => document.getElementById(k).value = "");
+    document.getElementById('btnSaveCar').innerText = "💾 Save Stroller";
+    document.getElementById('btnCancelEdit').style.display = "none";
+}
+
+function saveLoc() {
+    const editId = document.getElementById('editLocIdx').value || Date.now();
+    const name = document.getElementById('newLocName').value.trim();
+    const price = parseFloat(document.getElementById('newLocPrice').value) || 0;
+    if (!name) return;
+    db.ref('ez_stroller_locations/' + editId).set({ name, price }).then(cancelLocEdit);
+}
+
+function editLoc(id) {
+    const loc = locations[id];
+    document.getElementById('editLocIdx').value = id;
+    document.getElementById('newLocName').value = loc.name;
+    document.getElementById('newLocPrice').value = loc.price || 0;
+    document.getElementById('btnSaveLoc').innerText = "✏️ Update Location";
+    document.getElementById('btnCancelLocEdit').style.display = "block";
+}
+
+function cancelLocEdit() {
+    document.getElementById('editLocIdx').value = "";
+    document.getElementById('newLocName').value = "";
+    document.getElementById('newLocPrice').value = "";
+    document.getElementById('btnSaveLoc').innerText = "💾 Save Location";
+    document.getElementById('btnCancelLocEdit').style.display = "none";
+}
+
+function saveThemeColors() {
+    const colors = {
+        primary: document.getElementById('colorPrimary').value,
+        secondary: document.getElementById('colorSecondary').value,
+        accent: document.getElementById('colorAccent').value
+    };
+    db.ref('ez_stroller_settings/colors').set(colors).then(() => alert("Theme updated!"));
+}
+
+function savePaymentMethods() {
+    const methods = {
+        qr_duitnow: document.getElementById('pm_qr_duitnow').checked,
+        qris: document.getElementById('pm_qris').checked,
+        online_transfer: document.getElementById('pm_online_transfer').checked,
+        paypal: document.getElementById('pm_paypal').checked,
+        cod: document.getElementById('pm_cod').checked
+    };
+    db.ref('ez_stroller_settings/paymentMethods').set(methods).then(() => alert("Payment methods updated!"));
+}
+
+function saveQRCodes() {
+    const qrCodes = {
+        qr_duitnow: document.getElementById('qr_duitnow_url').value,
+        qris: document.getElementById('qr_qris_url').value,
+        online_transfer: document.getElementById('qr_transfer_url').value
+    };
+    db.ref('ez_stroller_settings/qrCodes').set(qrCodes).then(() => alert("QR codes saved!"));
+}
+
+function saveAcceptedLogos() {
+    const logos = {
+        visa: document.getElementById('logo_visa').value,
+        mastercard: document.getElementById('logo_mastercard').value,
+        wise: document.getElementById('logo_wise').value,
+        paypal: document.getElementById('logo_paypal').value,
+        qris: document.getElementById('logo_qris').value,
+        duitnow: document.getElementById('logo_duitnow').value,
+        alipay: document.getElementById('logo_alipay').value,
+        fpx: document.getElementById('logo_fpx').value,
+        amex: document.getElementById('logo_amex').value
+    };
+    db.ref('ez_stroller_settings/acceptLogos').set(logos).then(() => alert("Logos saved!"));
+}
+
+function saveGallery() {
+    const gallery = {};
+    for (let i = 1; i <= 8; i++) {
+        const url = document.getElementById(`gallery_${i}`).value;
+        if (url) gallery[`image_${i}`] = url;
+    }
+    db.ref('ez_stroller_gallery').set(gallery).then(() => alert("Gallery saved!"));
+}
+
+function saveSettings() {
+    db.ref('ez_stroller_settings').update({
+        adminEmail: document.getElementById('confEmail').value,
+        adminPhone: document.getElementById('confPhone').value,
+        termsText: document.getElementById('confTermsText').value,
+        termsLink: document.getElementById('confTermsLink').value
+    });
+    alert("Settings Updated! ✅");
+}
+
+function deleteItem(path) { if (confirm("Delete this item?")) db.ref(path).remove(); }
+
+function showTab(tabId, btn) {
+    if (tabId === 'bookingSection') {
+        document.getElementById('bookingSection').style.display = 'block';
+        document.getElementById('adminSection').style.display = 'none';
+        document.getElementById('stepsBar').style.display = 'block';
+    } else {
+        document.getElementById('bookingSection').style.display = 'none';
+        document.getElementById('adminSection').style.display = 'block';
+        document.getElementById('stepsBar').style.display = 'none';
+    }
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+document.getElementById('adminTrigger').onclick = () => {
+    adminClicks++;
+    if (adminClicks === 5) {
+        if (prompt("Admin Password:") === ADMIN_PASS) document.getElementById('navTabs').classList.add('visible');
+        adminClicks = 0;
+    }
+    setTimeout(() => adminClicks = 0, 2000);
+};
+
+if ('serviceWorker' in navigator) {
+    const swCode = `const CACHE='ez-stroller-v1';self.addEventListener('install',e=>{self.skipWaiting();});self.addEventListener('activate',e=>{self.clients.claim();});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});`;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+}
+
+window.onload = initApp;
 </script>
 
 </body>
